@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.messaging.broker import message_broker
 from ling_chat.core.service_manager import service_manager
@@ -149,11 +150,11 @@ async def generate_background(payload: GenerateBackgroundRequest):
     """
     异步生成 AI 背景图片。立即返回，生成完成后通过 WebSocket 通知前端。
     """
-    api_key = os.environ.get("IMAGE_API_KEY", "")
+    api_key = runtime_config.get("visual.image_api_key", "")
     if not api_key:
         raise HTTPException(
             status_code=400,
-            detail="IMAGE_API_KEY 环境变量未设置，无法使用图片生成功能。请在 .env 中配置。",
+            detail="IMAGE_API_KEY 环境变量未设置，无法使用图片生成功能。请在 TOML 配置中配置。",
         )
 
     asyncio.create_task(_do_generate_background(payload.prompt, payload.client_id))

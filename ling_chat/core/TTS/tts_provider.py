@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.TTS.aivis_adapter import AIVISAdapter
 from ling_chat.core.TTS.bv2_adapter import BV2Adapter
@@ -34,10 +35,10 @@ class TTS:
         self.default_tts_type = default_tts_type
         self.default_language = default_language
 
-        self.format = os.environ.get("VOICE_FORMAT", "wav")
+        self.format = runtime_config.get("tts.voice_format", "wav")
 
         self.audio_format = self.format
-        self.temp_dir = Path(os.environ.get("TEMP_VOICE_DIR", temp_path / "data/voice"))
+        self.temp_dir = Path(runtime_config.get("log.temp_voice_dir", str(temp_path / "data/voice")))
         self.temp_dir.mkdir(parents=True, exist_ok=True)
         self.enable = True  # 初始化时启用
 
@@ -108,7 +109,7 @@ class TTS:
         :param speaker_uuid: 说话人UUID（可选）
         :param language: 语言选择（目前仅支持ja）
         """
-        if os.environ.get("AIVIS_API_KRY", "") == "":
+        if runtime_config.get("tts.aivis_api_key", "") == "":
             logger.warning("未设置AIVIS_API_KRY环境变量，请检查是否正确设置")
             self.enable = False
             return None
@@ -148,7 +149,7 @@ class TTS:
         :param model: TTS 模型名称
         :param voice: 音色/声音 ID
         """
-        if os.environ.get("OPENAI_TTS_API_KEY", "") == "":
+        if runtime_config.get("tts.openai_tts_api_key", "") == "":
             logger.warning("未设置 OPENAI_TTS_API_KEY 环境变量，请检查是否正确设置")
             self.enable = False
             return None

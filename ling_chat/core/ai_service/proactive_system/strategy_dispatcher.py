@@ -1,8 +1,8 @@
-import os
 import random
 from datetime import datetime
 from typing import Optional
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.ai_service.game_system.game_status import GameStatus
 from ling_chat.core.ai_service.proactive_system.type import PerceptionResult, UserState
 from ling_chat.core.llm_providers.manager import LLMManager
@@ -27,9 +27,7 @@ class StrategyDispatcher:
         today_str = datetime.now().strftime("%m-%d")
 
         # 1. 检查 ImportantDay (如果是今天且未触发过)
-        enable_important_day = (
-            os.getenv("ENABLE_IMPORTANT_DAY_REMINDER", "false").lower() == "true"
-        )
+        enable_important_day = bool(runtime_config.get("schedule.enable_important_day_reminder", False))
         if enable_important_day and self.settings.importantDays:
             last_talk_date = (
                 # last_dialog_time 理论上在 chat_history.py 加载后已经是 datetime，
@@ -60,9 +58,9 @@ class StrategyDispatcher:
 
         # 优先从环境变量读取权重
         try:
-            todo_weight = int(os.getenv("TODO_WEIGHT", "-1"))
-            topic_weight = int(os.getenv("TOPIC_WEIGHT", "-1"))
-            screen_weight = int(os.getenv("SCREEN_WEIGHT", "-1"))
+            todo_weight = int(runtime_config.get("schedule.todo_weight", -1))
+            topic_weight = int(runtime_config.get("schedule.topic_weight", -1))
+            screen_weight = int(runtime_config.get("schedule.screen_weight", -1))
         except ValueError:
             pass
 
@@ -77,15 +75,15 @@ class StrategyDispatcher:
             screen_weight = 60 if perception.state == UserState.GAME else 30
 
         # 添加模式和对应的权重
-        if os.getenv("ENABLE_TODO_PRECEPTION", "false").lower() == "true":
+        if bool(runtime_config.get("schedule.enable_todo_preception", False)):
             modes.append("TODO")
             weights.append(todo_weight)
 
-        if os.getenv("ENABLE_TOPIC_CREATER", "false").lower() == "true":
+        if bool(runtime_config.get("schedule.enable_topic_creater", False)):
             modes.append("TOPIC")
             weights.append(topic_weight)
 
-        if os.getenv("ENABLE_VISUAL_PRECEPTION", "true").lower() == "true":
+        if bool(runtime_config.get("schedule.enable_visual_preception", True)):
             modes.append("SCREEN")
             weights.append(screen_weight)
 
@@ -99,7 +97,7 @@ class StrategyDispatcher:
             if prompt:
                 return prompt
             # 没有 Todo 时降级到 TOPIC（如果启用）
-            if os.getenv("ENABLE_TOPIC_CREATER", "false").lower() == "true":
+            if bool(runtime_config.get("schedule.enable_topic_creater", False)):
                 return await self._get_topic_prompt()
             return None
 

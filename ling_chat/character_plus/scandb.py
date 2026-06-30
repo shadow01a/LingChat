@@ -1,11 +1,11 @@
 import json
-import os
 
 import httpx
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 
-BASE_URL = os.getenv("COMMUNITY_URL", "https://192.168.0.116:8000").rstrip("/")
+BASE_URL = str(runtime_config.get("server.community_url", "https://192.168.0.116:8000")).rstrip("/")
 
 
 def list_pages():

@@ -3,11 +3,11 @@
 """
 
 import json
-import os
 import re
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import TermColors, logger
 from ling_chat.core.schemas.console_logs import (
     ConsoleLogEntry,
@@ -97,7 +97,7 @@ class ConsoleLogService:
         """根据环境变量获取默认过滤配置"""
         # 检查是否启用前端日志转发
         enable_forwarding = (
-            os.environ.get("ENABLE_FRONTEND_LOG_FORWARDING", "true").lower() == "true"
+            bool(runtime_config.get("log.enable_frontend_log_forwarding", True))
         )
 
         # 创建过滤配置 - 前端转发所有日志，由后端根据LOG_LEVEL过滤
@@ -206,9 +206,8 @@ class ConsoleLogService:
 
     def _should_log_by_backend_level(self, backend_level: str) -> bool:
         """根据LOG_LEVEL环境变量检查是否应该记录此后端日志级别"""
-        import os
 
-        log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+        log_level = runtime_config.get("log.log_level", "INFO").upper()
 
         # 后端日志级别优先级
         backend_level_order = {

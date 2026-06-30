@@ -1,6 +1,6 @@
-import os
 import random
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.ai_service.proactive_system.type import PerceptionResult
 from ling_chat.core.logger import logger
 
@@ -18,7 +18,7 @@ class InterestManager:  # Reviewed
         self.reload_max_proactive_count()
 
     def reload_max_proactive_count(self):
-        self.max_proactive_count = int(os.getenv("MAX_PROACTIVE_TIMES", 1))
+        self.max_proactive_count = int(runtime_config.get("schedule.max_proactive_times", 1))
         self.decay_step = (
             50.0 / self.max_proactive_count if self.max_proactive_count > 0 else 50
         )

@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from typing import Awaitable, Dict, List, Tuple
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.TTS.tts_provider import TTS
 from ling_chat.schemas.character_settings import VoiceModel
@@ -117,15 +118,15 @@ class VoiceMaker:
                 logger.debug(f"gsv 拼接后的参考音频路径：{ref_audio_path}")
 
                 # 优先使用环境变量定义的语音文件
-                if os.environ.get("GPT_SOVITS_REF_AUDIO", "") == "":
+                if runtime_config.get("tts.gpt_sovits_ref_audio", "") == "":
                     self.tts_provider.init_gsv_adapter(
                         ref_audio_path=ref_audio_path,
                         prompt_text=tts_settings.gsv_voice_text,
                     )
                 else:
                     self.tts_provider.init_gsv_adapter(
-                        ref_audio_path=os.environ.get("GPT_SOVITS_REF_AUDIO", ""),
-                        prompt_text=os.environ.get("GPT_SOVITS_PROMPT_TEXT", ""),
+                        ref_audio_path=runtime_config.get("tts.gpt_sovits_ref_audio", ""),
+                        prompt_text=runtime_config.get("tts.gpt_sovits_prompt_text", ""),
                     )
                     logger.warning("你正在使用环境变量中的 GPT-SoVITS 配置")
 
@@ -134,8 +135,8 @@ class VoiceMaker:
                 sovits_model_name = tts_settings.gsv_sovits_model_name
 
                 # 检查环境变量中的模型配置
-                env_gpt_model = os.environ.get("GPT_SOVITS_GPT_MODEL", "")
-                env_sovits_model = os.environ.get("GPT_SOVITS_SOVITS_MODEL", "")
+                env_gpt_model = runtime_config.get("tts.gpt_sovits_gpt_model", "")
+                env_sovits_model = runtime_config.get("tts.gpt_sovits_sovits_model", "")
 
                 # 异步设置模型
                 async def _set_models(gpt_model_path: str, sovits_model_path: str):

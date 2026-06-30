@@ -1,7 +1,6 @@
-import os
-
 import httpx
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.TTS.base_adapter import TTSBaseAdapter
 
@@ -16,7 +15,7 @@ class SBV2APIAdapter(TTSBaseAdapter):
         style_id: int = 0,
         audio_format: str = "wav",
     ):
-        api_url = os.environ.get("SBV2API_API_URL", "http://localhost:3000")
+        api_url = runtime_config.get("tts.sbv2api_api_url", "http://localhost:3000")
         # 处理URL末尾斜杠，避免重复
         self.api_url = api_url.rstrip("/")
         self.params: dict[str, str | int | float] = {

@@ -1,4 +1,3 @@
-import os
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
@@ -7,7 +6,6 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from ling_chat.core.emotion.classifier import EmotionClassifier
-from ling_chat.utils.load_env import load_env
 
 classifier = None  # 初始化分类器
 
@@ -69,9 +67,10 @@ async def predict_emotion(request: PredictionRequest):
 
 
 if __name__ == "__main__":
-    load_env()
-    host = os.environ.get("EMOTION_BIND_ADDR", "0.0.0.0")
-    port = int(os.environ.get("EMOTION_PORT", 8000))
+    from ling_chat.configs.runtime_config import runtime_config
+
+    host = runtime_config.get("emotion.emotion_bind_addr", "0.0.0.0")
+    port = int(runtime_config.get("emotion.emotion_port", 8000))
 
     uvicorn.run(
         "predictor_server:app", host=host, port=port, workers=1, log_level="info"

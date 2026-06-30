@@ -1,9 +1,9 @@
-import os
 import subprocess
 import sys
 import threading
 from pathlib import Path
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 
 
@@ -12,7 +12,7 @@ def start_tts_software():
     根据环境变量自动启动语音合成软件
     支持相对路径（基于项目根目录）和绝对路径
     """
-    tts_path_str = os.getenv("TTS_SOFTWARE_PATH", "").strip()
+    tts_path_str = str(runtime_config.get("tts.tts_software_path", "")).strip()
 
     if not tts_path_str:
         logger.warning("TTS_SOFTWARE_PATH 未配置，跳过自动启动语音合成软件")

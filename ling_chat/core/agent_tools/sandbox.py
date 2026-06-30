@@ -15,6 +15,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.utils.runtime_path import user_data_path
 
 # 沙盒根目录
@@ -515,7 +516,7 @@ def _validate_command(command: str) -> tuple[bool, str]:
 def sandbox_execute_command(command: str, timeout: int = 30) -> dict[str, Any]:
     """在沙盒内安全执行命令"""
     # 环境变量控制
-    is_enabled = os.environ.get("ENABLE_SANDBOX_COMMANDS", "true").lower() == "true"
+    is_enabled = bool(runtime_config.get("sandbox.enable_sandbox_commands", True))
     if not is_enabled:
         return {
             "ok": False,

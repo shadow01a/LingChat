@@ -1,5 +1,4 @@
 import base64
-import os
 import uuid
 from pathlib import Path
 
@@ -7,6 +6,7 @@ import httpx
 import requests
 from openai import OpenAI
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 
 
@@ -14,8 +14,8 @@ class ImageGenerator:
     """AI 图片生成器，使用 OpenAI 兼容的 images.generate 接口"""
 
     def __init__(self):
-        self.api_key = os.environ.get("IMAGE_API_KEY", "")
-        self.base_url = os.environ.get("IMAGE_BASE_URL", "https://api.openai.com/v1")
+        self.api_key = runtime_config.get("visual.image_api_key", "")
+        self.base_url = runtime_config.get("visual.image_base_url", "https://api.openai.com/v1")
 
         if not self.api_key:
             raise ValueError("IMAGE_API_KEY 环境变量未设置，无法使用图片生成功能。")

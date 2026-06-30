@@ -1,6 +1,5 @@
 import asyncio
 import base64
-import os
 import time
 from io import BytesIO
 
@@ -8,17 +7,19 @@ import httpx
 from openai import OpenAI
 from PIL import ImageGrab
 
+from ling_chat.configs.runtime_config import runtime_config
+
 
 class DesktopAnalyzer:
     def __init__(self):
         """
         初始化桌面分析器
         """
-        self.api_key = os.environ.get("VD_API_KEY", "")
-        self.base_url = os.environ.get(
-            "VD_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        self.api_key = runtime_config.get("visual.vd_api_key", "")
+        self.base_url = runtime_config.get(
+            "visual.vd_base_url", "https://dashscope.aliyuncs.com/compatible-mode/v1"
         )
-        self.model = os.environ.get("VD_MODEL", "qwen3.5-plus")
+        self.model = runtime_config.get("visual.vd_model", "qwen3.5-plus")
 
         self.last_response_time = None
         self.last_input_tokens = None

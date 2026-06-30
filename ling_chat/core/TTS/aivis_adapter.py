@@ -1,7 +1,6 @@
-import os
-
 import httpx
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.TTS.base_adapter import TTSBaseAdapter
 
@@ -27,10 +26,10 @@ class AIVISAdapter(TTSBaseAdapter):
         :param audio_format: 音频格式 (wav/flac/mp3/aac/opus)
         :param lan: 语言 (BCP47格式, 默认"ja"，目前仅支持ja)
         """
-        api_url = os.environ.get("AIVIS_API_URL", "https://api.aivis-project.com/v1")
+        api_url = runtime_config.get("tts.aivis_api_url", "https://api.aivis-project.com/v1")
         # 处理URL末尾斜杠，避免重复
         self.api_url = api_url.rstrip("/")
-        self.api_key = os.environ.get("AIVIS_API_KRY", "")
+        self.api_key = runtime_config.get("tts.aivis_api_key", "")
 
         self.params: dict[str, str | int | float | bool | None] = {
             "model_uuid": model_uuid,

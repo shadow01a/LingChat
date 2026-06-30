@@ -1,0 +1,98 @@
+[log]
+log_level = "INFO"
+log_file_directory = "ling_chat/data/run_logs"
+enable_file_logging = true
+enable_frontend_log_forwarding = true
+backend_log_dir = "ling_chat/data/logs"
+app_log_dir = "ling_chat/data/log"
+temp_voice_dir = "ling_chat/data/temp_voice"
+clean_temp_files = true
+emotion_model_path = "ling_chat/third_party/emotion_model"
+
+[tts]
+voice_format = "wav"
+simple_vits_api_url = "http://localhost:23456"
+style_bert_vits2_url = "http://127.0.0.1:5000"
+sbv2api_api_url = "http://localhost:3000"
+gpt_sovits_api_url = "http://127.0.0.1:9880"
+gpt_sovits_ref_audio = ""
+gpt_sovits_prompt_text = ""
+gpt_sovits_gpt_model = ""
+gpt_sovits_sovits_model = ""
+aivis_api_key = ""
+aivis_api_url = "https://api.aivis-project.com/v1"
+openai_tts_api_key = ""
+openai_tts_base_url = "https://api.openai.com/v1"
+auto_start_tts_software = false
+tts_software_path = "third_party/tts/launcher.bat"
+
+[visual]
+vd_api_key = ""
+vd_base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+vd_model = "qwen3.5-flash"
+image_api_key = ""
+image_base_url = "https://api.openai.com/v1"
+
+[memory]
+use_persistent_memory = false
+memory_update_interval = 250
+memory_recent_window = 30
+use_rag = false
+rag_retrieval_count = 3
+rag_window_count = 5
+rag_history_path = "ling_chat/data/rag_chat_history"
+chroma_db_path = "ling_chat/data/chroma_db_store"
+
+[dialogue]
+comsumers = 3
+use_time_sense = true
+show_onboarding_tutorial = true
+show_onboarding_tutorial_per_device = false
+enable_translate = true
+translate_stream = false
+llm_output_sec_lang = false
+no_emotion_limit_prompt = false
+print_context = false
+use_stream = true
+voice_check = false
+
+[emotion]
+enable_emotion_classifier = true
+enable_direct_emotion_classifier = false
+emotion_bind_addr = "localhost"
+emotion_port = 8000
+
+[schedule]
+enable_proactive_system = false
+max_proactive_times = 1
+enable_visual_preception = true
+enable_topic_creater = false
+enable_todo_preception = false
+enable_schedule_reminder = true
+enable_important_day_reminder = true
+todo_weight = -1
+topic_weight = -1
+screen_weight = -1
+
+[server]
+backend_bind_addr = "localhost"
+backend_port = 8765
+frontend_bind_addr = "localhost"
+frontend_port = 5173
+allowed_origins = ""
+update_url = "lupd.uwaspace.work"
+community_url = "http://localhost:5200"
+backend_access_log = true
+backend_reload = false
+open_frontend_app = true
+
+[sandbox]
+enable_sandbox_commands = true
+simple_tools_max_result_chars = 12000
+simple_tools_max_rounds = 3
+simple_tools_planner_timeout = 45
+
+[debug]
+pipeline_idle_timeout = 90
+pipeline_cleanup_timeout = 10
+console_show_timestamp = false

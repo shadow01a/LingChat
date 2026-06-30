@@ -1,6 +1,7 @@
 import os
 from typing import Dict, List
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.ai_service.game_system.game_status import GameStatus
 from ling_chat.core.llm_providers.manager import LLMManager
 from ling_chat.core.logger import logger
@@ -26,9 +27,7 @@ class Translator:
         ]
         self.game_status = game_status
 
-        self.enable_translate: bool = (
-            os.environ.get("ENABLE_TRANSLATE", "True").lower() == "true"
-        )
+        self.enable_translate: bool = bool(runtime_config.get("dialogue.enable_translate", True))
 
     def get_all_chinese_part(self, results: List[Dict]) -> str:
         result = ""
@@ -84,7 +83,7 @@ class Translator:
         send_messages.append({"role": "user", "content": full_chinese_response})
 
         try:
-            if os.environ.get("TRANSLATE_STREAM", "true") == "true" and not script:
+            if bool(runtime_config.get("dialogue.translate_stream", True)) and not script:
                 # 流式处理 - 逐块翻译并实时生成语音
                 buffer = ""
                 current_segment_index = 0

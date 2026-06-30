@@ -1,9 +1,8 @@
-"""LLM配置管理器，支持多配置方案存储和切换
+"""LLM 配置管理器，支持多配置方案存储和切换
 
-底层逻辑：将LLM配置从.env分离到独立的TOML文件夹，实现多配置方案切换
+LLM 配置已全面迁移至 TOML 文件管理 (configs/llm_configs/*.toml)。
 """
 
-import os
 import threading
 import tomllib
 from pathlib import Path
@@ -14,9 +13,9 @@ from ling_chat.utils.runtime_path import package_root
 
 
 class LLMConfig:
-    """LLM配置管理器单例类
+    """LLM 配置管理器单例类
 
-    支持多配置方案存储、热切换、从.env自动迁移
+    支持多配置方案存储、热切换
     """
 
     _instance: Optional["LLMConfig"] = None
@@ -44,176 +43,36 @@ class LLMConfig:
         self._load_active()
 
     def _init_config_dir(self) -> None:
-        """初始化配置文件夹，首次启动时从.env迁移
-
-        Deprecated: LLM 配置已全面迁移至 TOML 文件管理，
-        此首次启动兜底迁移将在未来版本中移除。
-        """
+        """初始化配置文件夹"""
         self._config_dir.mkdir(parents=True, exist_ok=True)
-
-        # 检查是否存在任何toml配置文件
-        existing_tomls = list(self._config_dir.glob("*.toml"))
-        if not existing_tomls:
-            logger.info("检测到首次启动，从.env迁移LLM配置...")
-            self._migrate_from_env()
-
-    def _migrate_from_env(self) -> None:
-        """从.env提取LLM配置并生成default.toml
-
-        Deprecated: 此方法仅在首次启动且无 TOML 配置文件时调用，
-        用于将旧版 .env 中的 LLM 配置迁移到 TOML 格式。
-        所有 LLM 配置已全面迁移至 TOML 文件管理，此兜底逻辑将在未来版本中移除。
-        如仍需设置环境变量，请直接编辑 configs/llm_configs/ 下的 TOML 文件。
-        """
-        # 提取LLM相关环境变量
-        llm_config = self._extract_env_llm_config()
-
-        # 写入default.toml
-        default_path = self._config_dir / "default.toml"
-        self._write_toml(default_path, llm_config)
-        logger.info(f"已创建默认LLM配置: {default_path}")
-
-    def _extract_env_llm_config(self) -> Dict[str, Any]:
-        """从环境变量提取LLM配置（兼容旧provider专用环境变量）
-
-        Deprecated: 所有 LLM 配置已迁移至 TOML 文件管理，
-        此方法仅在首次启动兜底迁移时调用，将在未来版本中移除。
-        请使用 configs/llm_configs/default.toml 管理配置。
-        """
-        provider = os.environ.get("LLM_PROVIDER", "webllm")
-
-        # 通用字段
-        main = {
-            "provider": provider,
-            "temperature": float(os.environ.get("TEMPERATURE", "1.3")),
-            "top_p": float(os.environ.get("TOP_P", "0.9")),
-            "max_tokens": int(os.environ.get("MAX_TOKENS", "8192")),
-            "enable_thinking": os.environ.get("ENABLE_THINKING", "none").lower(),
-        }
-
-        # 按 provider 映射旧环境变量到统一字段
-        provider_mappings = {
-            "webllm": {
-                "api_key": ("CHAT_API_KEY", ""),
-                "base_url": ("CHAT_BASE_URL", "https://api.deepseek.com/v1"),
-                "model": ("MODEL_TYPE", "deepseek-chat"),
-            },
-            "gemini": {
-                "api_key": ("GEMINI_API_KEY", ""),
-                "base_url": (
-                    "GEMINI_BASE_URL",
-                    "https://generativelanguage.googleapis.com/v1beta",
-                ),
-                "model": ("GEMINI_MODEL_TYPE", "gemini-2.5-flash"),
-            },
-            "anthropic": {
-                "api_key": ("ANTHROPIC_API_KEY", ""),
-                "base_url": ("ANTHROPIC_BASE_URL", "https://api.anthropic.com"),
-                "model": ("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929"),
-            },
-            "ollama": {
-                "base_url": ("OLLAMA_BASE_URL", "http://localhost:11434"),
-                "model": ("OLLAMA_MODEL", "llama3"),
-            },
-            "lmstudio": {
-                "api_key": ("LMSTUDIO_API_KEY", ""),
-                "base_url": ("LMSTUDIO_BASE_URL", "http://localhost:1234/"),
-                "model": ("LMSTUDIO_MODEL_TYPE", "unknown"),
-            },
-        }
-
-        mapping = provider_mappings.get(provider, provider_mappings["webllm"])
-        for key, (env_var, default) in mapping.items():
-            main[key] = os.environ.get(env_var, default)
-
-        # 从旧 provider 专用代理环境变量迁移到全局 network.proxy
-        # 优先级: 当前 provider 对应的旧变量 > CHAT_PROXY_URL > GEMINI_PROXY_URL
-        proxy_env_map = {
-            "webllm": "CHAT_PROXY_URL",
-            "gemini": "GEMINI_PROXY_URL",
-        }
-        proxy_value = ""
-        primary_var = proxy_env_map.get(provider)
-        if primary_var:
-            proxy_value = os.environ.get(primary_var, "")
-        if not proxy_value:
-            # 任何旧变量非空都尝试迁移过来
-            for env_var in ("CHAT_PROXY_URL", "GEMINI_PROXY_URL"):
-                value = os.environ.get(env_var, "")
-                if value:
-                    proxy_value = value
-                    break
-
-        return {
-            "config_name": "默认配置",
-            "config_description": "从.env自动迁移的默认配置",
-            "main": main,
-            "network": {
-                "proxy": proxy_value,
-            },
-            "translator": {
-                "provider": os.environ.get("TRANSLATE_LLM_PROVIDER", "none"),
-                "model": os.environ.get("TRANSLATE_MODEL", ""),
-                "api_key": os.environ.get("TRANSLATE_API_KEY", ""),
-                "base_url": os.environ.get("TRANSLATE_BASE_URL", ""),
-            },
-            "providers": {},
-        }
 
     def _load_active(self) -> None:
         """加载当前激活的配置"""
         config_path = self._config_dir / f"{self._active_config_name}.toml"
         if not config_path.exists():
-            # 如果激活的配置不存在，回退到default
+            # 如果激活的配置不存在，回退到 default
             config_path = self._config_dir / "default.toml"
             self._active_config_name = "default"
             if not config_path.exists():
                 self._config = self._create_default_config()
+                # 写入默认配置文件
+                self._write_toml(config_path, self._config)
+                logger.info(f"已创建默认 LLM 配置: {config_path}")
                 return
 
         self._config = self._parse_toml(config_path)
-        # 一次性迁移：旧版本将 proxy 放在 [main]，需挪到 [network]
-        self._migrate_legacy_proxy(config_path)
-
-    def _migrate_legacy_proxy(self, config_path: Path) -> None:
-        """将旧 main.proxy 迁移到 network.proxy 并写回磁盘
-
-        触发条件：
-        - main.proxy 存在（无论是否为空）
-        - 且 [network] 段不存在或没有 proxy 字段（避免覆盖已有设置）
-        """
-        main = self._config.get("main")
-        if not isinstance(main, dict) or "proxy" not in main:
-            return
-
-        legacy_proxy = main.pop("proxy", "")
-        network = self._config.get("network")
-        if not isinstance(network, dict):
-            network = {}
-            self._config["network"] = network
-
-        # 已有 network.proxy 时不覆盖；否则把旧值搬过去
-        if "proxy" not in network:
-            network["proxy"] = legacy_proxy or ""
-
-        # 落盘，下次启动就不再触发
-        try:
-            self._write_toml(config_path, self._config)
-            logger.info(f"已将旧版 main.proxy 迁移到 network.proxy: {config_path}")
-        except Exception as e:
-            logger.warning(f"迁移 main.proxy 到 network.proxy 写盘失败: {e}")
 
     def _parse_toml(self, path: Path) -> Dict[str, Any]:
-        """解析TOML文件"""
+        """解析 TOML 文件"""
         try:
             with open(path, "rb") as f:
                 return tomllib.load(f)
         except Exception as e:
-            logger.error(f"解析TOML文件失败 {path}: {e}")
+            logger.error(f"解析 TOML 文件失败 {path}: {e}")
             return self._create_default_config()
 
     def _write_toml(self, path: Path, config: Dict[str, Any]) -> None:
-        """写入TOML文件（手动序列化以支持Python 3.11+）"""
+        """写入 TOML 文件（手动序列化以支持 Python 3.11+）"""
         try:
             lines = []
 
@@ -225,28 +84,28 @@ class LLMConfig:
                 lines.append(f'# config_description = "{desc}"')
             lines.append("")
 
-            # 写入main配置
+            # 写入 main 配置
             if "main" in config:
                 lines.append("[main]")
                 for key, value in config["main"].items():
                     lines.append(self._format_toml_line(key, value))
                 lines.append("")
 
-            # 写入translator配置
+            # 写入 translator 配置
             if "translator" in config:
                 lines.append("[translator]")
                 for key, value in config["translator"].items():
                     lines.append(self._format_toml_line(key, value))
                 lines.append("")
 
-            # 写入network配置（全局网络设置，位于 providers 之前）
+            # 写入 network 配置（全局网络设置，位于 providers 之前）
             if "network" in config:
                 lines.append("[network]")
                 for key, value in config["network"].items():
                     lines.append(self._format_toml_line(key, value))
                 lines.append("")
 
-            # 写入providers配置
+            # 写入 providers 配置
             if "providers" in config:
                 for provider, pconfig in config["providers"].items():
                     if pconfig:
@@ -258,13 +117,13 @@ class LLMConfig:
             with open(path, "w", encoding="utf-8") as f:
                 f.write("\n".join(lines))
 
-            logger.debug(f"已写入TOML配置: {path}")
+            logger.debug(f"已写入 TOML 配置: {path}")
         except Exception as e:
-            logger.error(f"写入TOML文件失败 {path}: {e}")
+            logger.error(f"写入 TOML 文件失败 {path}: {e}")
             raise
 
     def _format_toml_line(self, key: str, value: Any) -> str:
-        """格式化TOML行"""
+        """格式化 TOML 行"""
         if isinstance(value, str):
             if '"' in value:
                 return f"{key} = '{value}'"
@@ -314,7 +173,7 @@ class LLMConfig:
             except Exception as e:
                 logger.error(f"配置重载回调执行失败: {e}")
 
-    # ============ 公开API ============
+    # ============ 公开 API ============
 
     def get_active_config_name(self) -> str:
         """获取当前激活的配置名称"""
@@ -337,7 +196,7 @@ class LLMConfig:
         self._active_config_name = name
         self._load_active()
         self._notify_reload()
-        logger.info(f"已切换LLM配置方案: {name}")
+        logger.info(f"已切换 LLM 配置方案: {name}")
         return True
 
     def get_active_config(self) -> Dict[str, Any]:
@@ -353,7 +212,7 @@ class LLMConfig:
     def get_translator_config(self) -> Dict[str, Any]:
         """获取翻译模型配置
 
-        如果translator.provider为none或空，返回main配置
+        如果 translator.provider 为 none 或空，返回 main 配置
         """
         trans = self._config.get("translator", {})
         if trans.get("provider", "none") in ["none", ""]:
@@ -422,26 +281,26 @@ class LLMConfig:
             self._config = config.copy()
             self._notify_reload()
 
-        logger.info(f"已保存LLM配置方案: {name}")
+        logger.info(f"已保存 LLM 配置方案: {name}")
 
     def delete_config(self, name: str) -> None:
         """删除配置方案
 
         Args:
-            name: 配置方案名称（不允许删除default）
+            name: 配置方案名称（不允许删除 default）
 
         Raises:
-            ValueError: 尝试删除default配置
+            ValueError: 尝试删除 default 配置
         """
         if name == "default":
-            raise ValueError("default配置不可删除")
+            raise ValueError("default 配置不可删除")
 
         path = self._config_dir / f"{name}.toml"
         if path.exists():
             path.unlink()
-            logger.info(f"已删除LLM配置方案: {name}")
+            logger.info(f"已删除 LLM 配置方案: {name}")
 
-        # 如果删除的是当前激活配置，切换回default
+        # 如果删除的是当前激活配置，切换回 default
         if name == self._active_config_name:
             self.set_active_config("default")
 
@@ -476,7 +335,7 @@ class LLMConfig:
         """热重载配置"""
         self._load_active()
         self._notify_reload()
-        logger.info(f"已重载LLM配置: {self._active_config_name}")
+        logger.info(f"已重载 LLM 配置: {self._active_config_name}")
 
 
 # 单例实例

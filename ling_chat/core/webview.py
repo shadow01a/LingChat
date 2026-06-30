@@ -1,7 +1,7 @@
 import multiprocessing
-import os
 import platform
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.utils.runtime_path import static_path, user_data_path
 
@@ -91,10 +91,8 @@ def func_webview():
         _migrate_webview_storage()
         api: Api = Api()
 
-        frontend_bind_addr = os.getenv("FRONTEND_BIND_ADDR") or os.getenv(
-            "BACKEND_BIND_ADDR", "127.0.0.1"
-        )
-        frontend_port = os.getenv("FRONTEND_PORT") or os.getenv("BACKEND_PORT", "8765")
+        frontend_bind_addr = runtime_config.get("server.frontend_bind_addr", "") or runtime_config.get("server.backend_bind_addr", "127.0.0.1")
+        frontend_port = runtime_config.get("server.frontend_port", "") or runtime_config.get("server.backend_port", "8765")
 
         window = webview.create_window(
             "Ling Chat",

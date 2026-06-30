@@ -9,6 +9,7 @@ from typing import Dict, List
 import py7zr
 import yaml
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.schemas.responses import ReplyResponse
 from ling_chat.game_database.models import LineAttribute, LineBase
@@ -605,7 +606,7 @@ class Function:
                 你必须严格遵守以上格式上的规定，否则会导致极端对话崩溃。
         """
 
-        if os.environ.get("LLM_OUTPUT_SEC_LANG", "true").lower() == "false":
+        if not runtime_config.get("dialogue.llm_output_sec_lang", True):
             if ai_prompt_example == ("", None):
                 logger.warning("角色配置文件缺少示例，将使用默认示例")
                 ai_prompt_example = """
@@ -707,8 +708,8 @@ class Function:
         """
         清理所有临时文件
         """
-        temp_dir = Path(os.environ.get("TEMP_VOICE_DIR", temp_path / "data/voice"))
-        self.format = os.environ.get("VOICE_FORMAT", "wav")
+        temp_dir = Path(runtime_config.get("log.temp_voice_dir", str(temp_path / "data/voice")))
+        self.format = runtime_config.get("tts.voice_format", "wav")
 
         for file in temp_dir.glob(f"*.{self.format}"):
             try:

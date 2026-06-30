@@ -7,6 +7,7 @@ import traceback
 
 from fastapi import APIRouter, Body, HTTPException, Request
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.console_log_service import console_log_service
 from ling_chat.core.logger import logger
 from ling_chat.core.schemas.console_logs import (
@@ -239,17 +240,11 @@ async def get_log_stats():
         stats = console_log_service.get_stats()
 
         # 获取环境变量配置
-        import os
-
         env_config = {
-            "ENABLE_FRONTEND_LOG_FORWARDING": os.environ.get(
-                "ENABLE_FRONTEND_LOG_FORWARDING", "true"
-            ),
-            "LOG_LEVEL": os.environ.get("LOG_LEVEL", "INFO"),
-            "ENABLE_FILE_LOGGING": os.environ.get("ENABLE_FILE_LOGGING", "true"),
-            "LOG_FILE_DIRECTORY": os.environ.get(
-                "LOG_FILE_DIRECTORY", "ling_chat/data/run_logs"
-            ),
+            "ENABLE_FRONTEND_LOG_FORWARDING": str(runtime_config.get("log.enable_frontend_log_forwarding", True)),
+            "LOG_LEVEL": str(runtime_config.get("log.log_level", "INFO")),
+            "ENABLE_FILE_LOGGING": str(runtime_config.get("log.enable_file_logging", True)),
+            "LOG_FILE_DIRECTORY": str(runtime_config.get("log.log_file_directory", "ling_chat/data/run_logs")),
         }
 
         return {
@@ -259,11 +254,8 @@ async def get_log_stats():
                 "stats": stats,
                 "environment_config": env_config,
                 "service_status": {
-                    "enabled": os.environ.get(
-                        "ENABLE_FRONTEND_LOG_FORWARDING", "true"
-                    ).lower()
-                    == "true",
-                    "log_level": os.environ.get("LOG_LEVEL", "INFO"),
+                    "enabled": bool(runtime_config.get("log.enable_frontend_log_forwarding", True)),
+                    "log_level": str(runtime_config.get("log.log_level", "INFO")),
                     "description": "前端日志转发服务状态（统一使用LOG_LEVEL过滤）",
                 },
             },

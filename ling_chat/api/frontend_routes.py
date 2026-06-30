@@ -1,10 +1,10 @@
-import os
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.utils.runtime_path import static_path, temp_path
 
 frontend_path = static_path / "frontend"
@@ -47,7 +47,7 @@ def get_static_files():
 
 def get_audio_files():
     """获取临时音频目录的 StaticFiles（用于 TTS 等动态生成的音频）"""
-    audio_path = Path(os.environ.get("TEMP_VOICE_DIR", temp_path / "audio"))
+    audio_path = Path(runtime_config.get("log.temp_voice_dir", str(temp_path / "audio")))
     audio_path.mkdir(exist_ok=True)
     return NoCacheStaticFiles(directory=audio_path, html=False)
 

@@ -1,10 +1,10 @@
-import os
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from sqlmodel import Session, select
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.service_manager import service_manager
 from ling_chat.game_database.database import engine
@@ -17,7 +17,7 @@ VOICE_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".m4a", ".webm", ".weba"}
 
 
 def _resolve_voice_cache_dir() -> Path:
-    raw_path = os.environ.get("TEMP_VOICE_DIR")
+    raw_path = runtime_config.get("log.temp_voice_dir")
     if not raw_path:
         return temp_path / "data" / "voice"
 

@@ -1,7 +1,6 @@
-import os
-
 import httpx
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.TTS.base_adapter import TTSBaseAdapter
 
@@ -18,7 +17,7 @@ class SBV2Adapter(TTSBaseAdapter):
         if lang == "ja":
             lang = "JP"
 
-        api_url = os.environ.get("STYLE_BERT_VITS2_URL", "http://127.0.0.1:5000")
+        api_url = runtime_config.get("tts.style_bert_vits2_url", "http://127.0.0.1:5000")
         # 处理URL末尾斜杠，避免重复
         self.api_url = api_url.rstrip("/")
         self.audio_format = audio_format

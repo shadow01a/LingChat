@@ -2,6 +2,7 @@ import os
 
 import httpx
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.TTS.base_adapter import TTSBaseAdapter
 
@@ -16,7 +17,7 @@ class GPTSoVITSAdapter(TTSBaseAdapter):
         text_lang: str = "auto",
         parallel_infer: bool = True,
     ):
-        api_url = os.environ.get("GPT_SOVITS_API_URL", "http://127.0.0.1:9880")
+        api_url = runtime_config.get("tts.gpt_sovits_api_url", "http://127.0.0.1:9880")
         # 处理URL末尾斜杠，避免重复
         self.api_url = api_url.rstrip("/")
 

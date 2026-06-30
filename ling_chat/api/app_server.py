@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 import threading
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -10,6 +9,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from ling_chat.api.routes_manager import RoutesManager
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.service_manager import service_manager
 from ling_chat.game_database.database import init_db
@@ -54,7 +54,7 @@ app = FastAPI(lifespan=lifespan)
 allow_origins = []
 allow_origin_regex = None  # 初始化正则变量
 # 从环境变量读取允许的源，如果未设置则使用常见开发源
-allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
+allowed_origins_str = runtime_config.get("server.allowed_origins", "")
 if allowed_origins_str:
     # 按逗号分割多个源
     allow_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
@@ -157,17 +157,17 @@ def run_app():
     global _app_loop
     try:
         logger.info("正在启动HTTP服务器...")
-        log_level = os.getenv("LOG_LEVEL", "info").lower()
-        access_log_enabled = os.getenv("BACKEND_ACCESS_LOG", "true").lower() == "true"
+        log_level = str(runtime_config.get("log.log_level", "info")).lower()
+        access_log_enabled = bool(runtime_config.get("server.backen_access_log", True))
 
         project_logger_instance = logger._logger
         uvicorn_log_level = getattr(logging, log_level.upper(), logging.INFO)
 
-        backend_host = os.getenv("BACKEND_BIND_ADDR", "0.0.0.0")
-        backend_port = int(os.getenv("BACKEND_PORT", "8765"))
+        backend_host = runtime_config.get("server.backend_bind_addr", "0.0.0.0")
+        backend_port = int(runtime_config.get("server.backend_port", "8765"))
 
         # 开发环境自动重载：通过环境变量 BACKEND_RELOAD=true 开启
-        use_reload = os.getenv("BACKEND_RELOAD", "false").lower() == "true"
+        use_reload = bool(runtime_config.get("server.backend_reload", False))
 
         config = uvicorn.Config(
             app,

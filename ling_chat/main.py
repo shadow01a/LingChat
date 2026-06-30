@@ -5,6 +5,7 @@ import threading
 import time
 from typing import Collection
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.utils.cli_parser import get_parser
 
 
@@ -124,21 +125,20 @@ def run_main_program(args, is_wv=False):
         handle_run(args.run or [])
         app_thread = run_app_in_thread()
 
-        if os.getenv("VOICE_CHECK", "false").lower() == "true":
+        if bool(runtime_config.get("dialogue.voice_check", False)):
             VoiceCheck.main()
         else:
-            logger.info("已根据环境变量禁用语音检查")
+            logger.info("已根据配置禁用语音检查")
 
         # 检查是否自动启动语音合成软件
-        if os.getenv("AUTO_START_TTS_SOFTWARE", "false").lower() == "true":
+        if bool(runtime_config.get("tts.auto_start_tts_software", False)):
             start_tts_software()
         else:
             logger.info("已禁用语音合成软件自动启动")
 
-        # 检查环境变量决定是否启动前端界面
-
+        # 检查配置决定是否启动前端界面
         use_frontend = (
-            os.getenv("OPEN_FRONTEND_APP", "false").lower() == "true" and not args.nogui
+            bool(runtime_config.get("server.open_frontend_app", False)) and not args.nogui
         ) or args.gui
 
         if use_frontend:
@@ -149,12 +149,8 @@ def run_main_program(args, is_wv=False):
                 webview_process = start_webview()
                 # pywebview 不可用时，start_webview() 返回 None，自动降级到 Server 模式
                 if webview_process is None:
-                    frontend_bind_addr = os.getenv("FRONTEND_BIND_ADDR") or os.getenv(
-                        "BACKEND_BIND_ADDR", "127.0.0.1"
-                    )
-                    frontend_port = os.getenv("FRONTEND_PORT") or os.getenv(
-                        "BACKEND_PORT", "8765"
-                    )
+                    frontend_bind_addr = runtime_config.get("server.frontend_bind_addr", "") or runtime_config.get("server.backend_bind_addr", "127.0.0.1")
+                    frontend_port = runtime_config.get("server.frontend_port", "") or runtime_config.get("server.backend_port", "8765")
                     logger.warning("pywebview 不可用，降级为 Server 模式（无本地窗口）")
                     logger.warning(
                         f"请打开浏览器访问 http://{frontend_bind_addr}:{frontend_port}/"
@@ -171,12 +167,8 @@ def run_main_program(args, is_wv=False):
                     # 不要让主程序也跟着退出，提示用户用浏览器访问即可。
                     exit_code = getattr(webview_process, "exitcode", 0)
                     if exit_code:
-                        frontend_bind_addr = os.getenv(
-                            "FRONTEND_BIND_ADDR"
-                        ) or os.getenv("BACKEND_BIND_ADDR", "127.0.0.1")
-                        frontend_port = os.getenv("FRONTEND_PORT") or os.getenv(
-                            "BACKEND_PORT", "8765"
-                        )
+                        frontend_bind_addr = runtime_config.get("server.frontend_bind_addr", "") or runtime_config.get("server.backend_bind_addr", "127.0.0.1")
+                        frontend_port = runtime_config.get("server.frontend_port", "") or runtime_config.get("server.backend_port", "8765")
                         logger.warning(
                             f"前端窗口启动失败（exitcode={exit_code}），"
                             f"请打开浏览器访问 http://{frontend_bind_addr}:{frontend_port}/"
@@ -201,12 +193,8 @@ def run_main_program(args, is_wv=False):
             except Exception as e:
                 # 其他异常时，提示用户用浏览器访问
                 logger.warning(f"前端窗口启动异常：{e}")
-                frontend_bind_addr = os.getenv("FRONTEND_BIND_ADDR") or os.getenv(
-                    "BACKEND_BIND_ADDR", "127.0.0.1"
-                )
-                frontend_port = os.getenv("FRONTEND_PORT") or os.getenv(
-                    "BACKEND_PORT", "8765"
-                )
+                frontend_bind_addr = runtime_config.get("server.frontend_bind_addr", "") or runtime_config.get("server.backend_bind_addr", "127.0.0.1")
+                frontend_port = runtime_config.get("server.frontend_port", "") or runtime_config.get("server.backend_port", "8765")
                 logger.warning(
                     f"请打开浏览器访问 http://{frontend_bind_addr}:{frontend_port}/"
                 )

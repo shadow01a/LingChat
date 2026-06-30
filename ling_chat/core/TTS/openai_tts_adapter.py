@@ -1,7 +1,6 @@
-import os
-
 from openai import AsyncOpenAI
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.core.TTS.base_adapter import TTSBaseAdapter
 
@@ -19,8 +18,8 @@ class OpenAITTSAdapter(TTSBaseAdapter):
         voice: str = "",
         audio_format: str = "wav",
     ):
-        api_key = os.environ.get("OPENAI_TTS_API_KEY", "")
-        base_url = os.environ.get("OPENAI_TTS_BASE_URL", "https://api.openai.com/v1")
+        api_key = runtime_config.get("tts.openai_tts_api_key", "")
+        base_url = runtime_config.get("tts.openai_tts_base_url", "https://api.openai.com/v1")
 
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self.model = model

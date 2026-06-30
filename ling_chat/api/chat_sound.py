@@ -1,9 +1,9 @@
-import os
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 from ling_chat.utils.runtime_path import temp_path
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/v1/chat/sound", tags=["Chat Sound"])
 
 @router.get("/get_voice/{voice_file}")
 async def get_specific_sound(voice_file: str):
-    voice_dir = Path(os.environ.get("TEMP_VOICE_DIR", temp_path / "audio"))
+    voice_dir = Path(runtime_config.get("log.temp_voice_dir", str(temp_path / "audio")))
 
     file_path = voice_dir / voice_file
 

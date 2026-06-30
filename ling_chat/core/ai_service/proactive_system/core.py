@@ -1,9 +1,9 @@
 import asyncio
 import json
-import os
 import random
 from typing import Optional
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.ai_service.config import AIServiceConfig
 from ling_chat.core.ai_service.game_system.game_status import GameStatus
 from ling_chat.core.ai_service.message_system.message_generator import MessageGenerator
@@ -35,7 +35,7 @@ class ProactiveSystem:
     ):
         self.config = config
         self.game_status = game_status
-        self.enabled = os.getenv("ENABLE_PROACTIVE_SYSTEM", "false").lower() == "true"
+        self.enabled = bool(runtime_config.get("schedule.enable_proactive_system", False))
 
         # 加载数据
         self.settings = self._load_settings()
@@ -57,11 +57,9 @@ class ProactiveSystem:
         self.proactive_loop_task: Optional[asyncio.Task] = None
 
     def start(self):
-        self.enabled = os.getenv("ENABLE_PROACTIVE_SYSTEM", "false").lower() == "true"
-        enable_schedule = (
-            os.getenv("ENABLE_SCHEDULE_REMINDER", "true").lower() == "true"
-        )
-        enable_visual = os.getenv("ENABLE_VISUAL_PRECEPTION", "true").lower() == "true"
+        self.enabled = bool(runtime_config.get("schedule.enable_proactive_system", False))
+        enable_schedule = bool(runtime_config.get("schedule.enable_schedule_reminder", True))
+        enable_visual = bool(runtime_config.get("schedule.enable_visual_preception", True))
 
         # 日程提醒独立于主动对话系统，单独控制
         if enable_schedule:
@@ -98,7 +96,7 @@ class ProactiveSystem:
     def reload_schedule(self):
         self.settings = self._load_settings()
         self.schedule_manager.stop()
-        if os.getenv("ENABLE_SCHEDULE_REMINDER", "true").lower() == "true":
+        if bool(runtime_config.get("schedule.enable_schedule_reminder", True)):
             self.schedule_manager.start()
 
     async def _main_loop(self):

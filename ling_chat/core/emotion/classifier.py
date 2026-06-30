@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import onnxruntime as ort
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import TermColors, logger
 from ling_chat.utils.runtime_path import third_party_path
 
@@ -23,7 +24,7 @@ class EmotionClassifier:
         """加载情绪分类模型 (ONNX版本) - 增强兼容性修复版"""
 
         # 检查是否启用了情感分类器
-        if os.environ.get("ENABLE_EMOTION_CLASSIFIER", "True").lower() == "false":
+        if not bool(runtime_config.get("dialogue.enable_emotion_classifier", True)):
             self._log_emotion_model_status(False, "情绪分类器已禁用")
             self.id2label = {}
             self.label2id = {}
@@ -32,8 +33,8 @@ class EmotionClassifier:
             return
 
         try:
-            model_path = model_path or os.environ.get(
-                "EMOTION_MODEL_PATH", third_party_path / "emotion_model"
+            model_path = model_path or runtime_config.get(
+                "log.emotion_model_path", str(third_party_path / "emotion_model")
             )
             model_path = Path(model_path).resolve()
 
@@ -173,11 +174,7 @@ class EmotionClassifier:
             }
 
         # 如果传入的文本已经是有效的情感标签，直接返回而不进行预测
-        if (
-            text in self.label2id
-            and os.environ.get("ENABLE_DIRECT_EMOTION_CLASSIFIER", "false").lower()
-            == "true"
-        ):
+        if text in self.label2id and bool(runtime_config.get("dialogue.enable_direct_emotion_classifier", False)):
             logger.debug(f"输入文本 '{text}' 已是有效情感标签，直接返回")
             return {
                 "label": text,

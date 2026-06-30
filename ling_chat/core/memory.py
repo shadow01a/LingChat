@@ -1,9 +1,9 @@
 import asyncio
 import json
-import os
 import time
 from typing import Dict, List
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.llm_providers.manager import LLMManager
 from ling_chat.core.logger import TermColors, logger
 from ling_chat.utils.runtime_path import user_data_path
@@ -58,7 +58,15 @@ class MemorySystem:
 
     def _safe_read_int(self, key, default):
         try:
-            return int(os.environ.get(key, default))
+            # 从 runtime_config 读取，支持 MEMORY_UPDATE_INTERVAL 和 MEMORY_RECENT_WINDOW
+            key_map = {
+                "MEMORY_UPDATE_INTERVAL": "memory.memory_update_interval",
+                "MEMORY_RECENT_WINDOW": "memory.memory_recent_window",
+            }
+            section_key = key_map.get(key, "")
+            if section_key:
+                return int(runtime_config.get(section_key, default))
+            return default
         except Exception:
             return default
 

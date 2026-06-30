@@ -1,8 +1,8 @@
 import asyncio
-import os
 import time
 from typing import Dict, List, Tuple
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.ai_service.game_system.memory_builder import MemoryBuilder
 from ling_chat.core.ai_service.type import GameRole
 from ling_chat.core.llm_providers.manager import LLMManager
@@ -12,7 +12,14 @@ from ling_chat.game_database.models import GameLine
 
 def _safe_read_int(key: str, default: int) -> int:
     try:
-        return int(os.environ.get(key, default))
+        key_map = {
+            "MEMORY_UPDATE_INTERVAL": "memory.memory_update_interval",
+            "MEMORY_RECENT_WINDOW": "memory.memory_recent_window",
+        }
+        section_key = key_map.get(key, "")
+        if section_key:
+            return int(runtime_config.get(section_key, default))
+        return default
     except Exception:
         return default
 
@@ -46,7 +53,7 @@ class PersistentMemorySystem:
         永久记忆开关：只有用户显式开启时才启用。
         通过 /api/settings/config 修改 .env 后会同步到 os.environ（运行时热更新）。
         """
-        return os.environ.get("USE_PERSISTENT_MEMORY", "False").lower() == "true"
+        return bool(runtime_config.get("memory.use_persistent_memory", False))
 
     def _init_prompts(self) -> None:
         base_role = (

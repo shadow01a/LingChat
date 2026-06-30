@@ -1,7 +1,7 @@
 import asyncio
-import os
 from typing import Dict
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.ai_service.ai_logger import AILogger
 from ling_chat.core.ai_service.config import AIServiceConfig
 from ling_chat.core.ai_service.exceptions import ScriptEngineError
@@ -34,7 +34,7 @@ class AIService:
 
         self.config = AIServiceConfig(clients=set(), user_id=self.user_id)
 
-        self.use_rag = os.environ.get("USE_RAG", "False").lower() == "true"
+        self.use_rag = bool(runtime_config.get("memory.use_rag", False))
         self.llm_model = LLMManager()
         self.ai_logger = AILogger()
         self.translator = Translator(self.game_status)
@@ -152,7 +152,7 @@ class AIService:
             if "COMSUMERS" in updates:
                 try:
                     new_concurrency = int(
-                        os.environ.get("COMSUMERS", self.message_generator.concurrency)
+                        runtime_config.get("dialogue.comsumers", self.message_generator.concurrency)
                     )
                     if new_concurrency > 0:
                         self.message_generator.concurrency = new_concurrency

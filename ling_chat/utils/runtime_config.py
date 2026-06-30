@@ -1,15 +1,20 @@
-import os
+"""运行时配置热重载处理
+
+配置已全面迁移至 TOML 文件管理：
+- LLM 配置: configs/llm_configs/*.toml
+- 运行时配置: configs/runtime_configs/*.toml
+"""
+
 import threading
 from typing import Dict
 
 from ling_chat.configs.llm_config import llm_config
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.service_manager import service_manager
 
 _runtime_update_lock = threading.Lock()
 
-# LLM相关配置key（用于触发热重载）
-# 注意：LLM 配置已迁移至 TOML 文件管理，
-# 此集合用于兼容从 .env 保存触发的重载，将在未来版本中移除。
+# LLM 相关配置 key（用于触发热重载）
 LLM_CONFIG_KEYS = {
     "LLM_PROVIDER",
     "MODEL_TYPE",
@@ -28,21 +33,17 @@ LLM_CONFIG_KEYS = {
 def apply_runtime_config_changes(new_values: Dict[str, str]) -> None:
     """应用运行时配置更改，支持热重载"""
     with _runtime_update_lock:
-        # 检测是否有LLM配置变更
+        # 检测是否有 LLM 配置变更
         has_llm_changes = any(key in LLM_CONFIG_KEYS for key in new_values.keys())
 
-        # 更新环境变量（保持向后兼容）
-        for key, value in new_values.items():
-            if key in LLM_CONFIG_KEYS:
-                # LLM配置不写入环境变量，由LLMConfig直接管理
-                continue
-            os.environ[str(key)] = str(value)
-
-        # 如果有LLM配置变更，触发LLMConfig重载
+        # 如果有 LLM 配置变更，触发 LLMConfig 重载
         if has_llm_changes:
             llm_config.reload()
 
-        # 通知AIService应用配置更改
+        # 触发 RuntimeConfig 重载
+        runtime_config.reload()
+
+        # 通知 AIService 应用配置更改
         ai_service = service_manager.ai_service
         if ai_service is not None:
             ai_service.apply_runtime_config(new_values)

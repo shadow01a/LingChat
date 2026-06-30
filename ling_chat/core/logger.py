@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 from typing import List, Optional
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.utils.runtime_path import user_data_path
 
 
@@ -94,15 +95,11 @@ class Logger:
 
         self.app_name = app_name
         self.log_level = self._get_log_level(log_level)
-        self.print_context = self._get_bool_env("PRINT_CONTEXT", None)
-        self.show_timestamp = self._get_bool_env(
-            "CONSOLE_SHOW_TIMESTAMP", show_timestamp
-        )
-        self.enable_file_logging = self._get_bool_env(
-            "ENABLE_FILE_LOGGING", enable_file_logging
-        )
+        self.print_context = bool(runtime_config.get("debug.print_context", False))
+        self.show_timestamp = bool(runtime_config.get("debug.console_show_timestamp", show_timestamp))
+        self.enable_file_logging = bool(runtime_config.get("log.enable_file_logging", enable_file_logging))
 
-        log_dir = log_file_directory or os.environ.get("LOG_FILE_DIRECTORY")
+        log_dir = log_file_directory or runtime_config.get("log.log_file_directory")
         if self.enable_file_logging and (not log_dir or log_dir == ""):
             print(
                 f"{TermColors.RED}环境变量 'LOG_FILE_DIRECTORY' 未设置，使用默认路径“data/run_logs”。{TermColors.RESET}"
@@ -129,7 +126,7 @@ class Logger:
         if explicit_level is not None:
             level_str = explicit_level
         else:
-            level_str = os.environ.get("LOG_LEVEL", "INFO")
+            level_str = runtime_config.get("log.log_level", "INFO")
 
         level_map = {
             "DEBUG": logging.DEBUG,
@@ -140,12 +137,6 @@ class Logger:
         }
 
         return level_map.get(level_str.upper(), logging.INFO)
-
-    def _get_bool_env(self, env_var: str, explicit_value: Optional[bool]) -> bool:
-        """获取布尔型配置，优先使用显式设置，其次环境变量"""
-        if explicit_value is not None:
-            return explicit_value
-        return os.environ.get(env_var, "false").lower() == "true"
 
     def _initialize_logger(self):
         """初始化日志处理器"""

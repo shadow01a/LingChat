@@ -1,9 +1,9 @@
-import os
 import re
 import uuid
 from datetime import datetime, timedelta
 from typing import Dict, List
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.ai_service.game_system.game_status import GameStatus
 from ling_chat.core.emotion.classifier import emotion_classifier
 from ling_chat.core.logger import logger
@@ -19,7 +19,7 @@ class MessageProcessor:
 
         # 用于分析图像信息
         self.desktop_analyzer = DesktopAnalyzer()
-        self.time_sense_enabled = os.environ.get("USE_TIME_SENSE", True)
+        self.time_sense_enabled = bool(runtime_config.get("dialogue.use_time_sense", True))
 
         # 用于存储语音目录位置，其实在voice_maker已经有了
         self.game_status = game_status
@@ -46,9 +46,7 @@ class MessageProcessor:
 
             cleaned_text = re.sub(r"<.*?>|（.*?）", "", following_text).strip()
 
-            enable_translate = (
-                os.environ.get("ENABLE_TRANSLATE", "False").lower() == "true"
-            )
+            enable_translate = bool(runtime_config.get("dialogue.enable_translate", False))
             if not enable_translate:
                 # 直接使用 cleaned_text 作为日语文本
                 japanese_text = cleaned_text
@@ -241,9 +239,7 @@ class MessageProcessor:
         from ling_chat.core.ai_service.prompt_config import prompt_config
 
         # 从配置文件读取情绪限制设置
-        emotion_limit_enabled = (
-            os.environ.get("NO_EMOTION_LIMIT_PROMPT", "False").lower() != "true"
-        )
+        emotion_limit_enabled = not bool(runtime_config.get("dialogue.no_emotion_limit_prompt", False))
         dialog_format_prompt_2 = prompt_config.get_emotion_limit_prompt(
             emotion_limit_enabled
         )
@@ -258,7 +254,7 @@ class MessageProcessor:
         format_prompt_template = prompt_config.format_prompt_template
 
         # 根据环境变量决定使用哪种语言模式
-        use_cn_mode = os.environ.get("LLM_OUTPUT_SEC_LANG", "False").lower() == "true"
+        use_cn_mode = bool(runtime_config.get("dialogue.llm_output_sec_lang", False))
 
         if use_cn_mode:
             # 中文模式（无翻译）

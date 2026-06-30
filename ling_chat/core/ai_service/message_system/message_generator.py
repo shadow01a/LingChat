@@ -1,8 +1,8 @@
 import asyncio
-import os
 import time
 from typing import AsyncGenerator, Dict, List, Optional
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.agent_tools.runner import SimpleAgentRunner
 from ling_chat.core.ai_service.ai_logger import AILogger
 from ling_chat.core.ai_service.config import AIServiceConfig
@@ -40,7 +40,7 @@ class MessageGenerator:
         self.ai_logger = ai_logger
         self.function = Function()
         self.game_status = game_status
-        self.concurrency = int(os.environ.get("COMSUMERS", 3))
+        self.concurrency = int(runtime_config.get("dialogue.comsumers", 3))
         self.agent_runner = SimpleAgentRunner(llm_model, game_status)
 
     async def process_sentence(self, sentence: str, emotion_segments: List[Dict]):
@@ -187,7 +187,7 @@ class MessageGenerator:
             # 同时设置一个超时兜底，避免 publisher/consumer 出现意外死锁时
             # 主协程永远阻塞在 output_queue.get() 上 —— 那会让外层的
             # _generation_lock 永不释放，前端持续转圈无法恢复。
-            pipeline_idle_timeout = float(os.environ.get("PIPELINE_IDLE_TIMEOUT", 90))
+            pipeline_idle_timeout = float(runtime_config.get("debug.pipeline_idle_timeout", 90))
             timed_out = False
             while True:
                 # 创建一个获取队列的任务
@@ -275,7 +275,7 @@ class MessageGenerator:
 
             try:
                 cleanup_timeout = max(
-                    1, int(os.environ.get("PIPELINE_CLEANUP_TIMEOUT", "10"))
+                    1, int(runtime_config.get("debug.pipeline_cleanup_timeout", 10))
                 )
             except (ValueError, TypeError):
                 cleanup_timeout = 10

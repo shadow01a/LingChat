@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.logger import logger
 
 from ..update.update_main import create_application
@@ -49,7 +50,7 @@ def init_update_application():
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
 
     # 获取更新URL
-    update_base = os.getenv("UPDATE_URL", "http://localhost:5100").strip()
+    update_base = str(runtime_config.get("server.update_url", "http://localhost:5100")).strip()
     if update_base.endswith("/updates"):
         update_url = update_base
     else:

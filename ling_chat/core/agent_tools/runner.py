@@ -1,10 +1,10 @@
 import asyncio
 import json
-import os
 import uuid
 from datetime import datetime
 from typing import Any
 
+from ling_chat.configs.runtime_config import runtime_config
 from ling_chat.core.agent_tools.registry import SimpleToolRegistry
 from ling_chat.core.ai_service.game_system.game_status import GameStatus
 from ling_chat.core.llm_providers.manager import LLMManager
@@ -49,15 +49,11 @@ class SimpleAgentRunner:
     def __init__(self, llm_model: LLMManager, game_status: GameStatus):
         self.llm_model = llm_model
         self.registry = SimpleToolRegistry(game_status)
-        self.max_result_chars = int(
-            os.environ.get("SIMPLE_TOOLS_MAX_RESULT_CHARS", "12000")
-        )
-        self.planner_timeout_seconds = int(
-            os.environ.get("SIMPLE_TOOLS_PLANNER_TIMEOUT", "45")
-        )
+        self.max_result_chars = int(runtime_config.get("sandbox.simple_tools_max_result_chars", 12000))
+        self.planner_timeout_seconds = int(runtime_config.get("sandbox.simple_tools_planner_timeout", 45))
 
     def is_enabled(self) -> bool:
-        return os.environ.get("ENABLE_SIMPLE_TOOLS", "true").lower() == "true"
+        return bool(runtime_config.get("sandbox.enable_sandbox_commands", True))
 
     async def enrich_context_if_needed(
         self,
@@ -69,7 +65,7 @@ class SimpleAgentRunner:
         if not self.is_enabled() or not user_message.strip():
             return messages
 
-        max_rounds = int(os.environ.get("SIMPLE_TOOLS_MAX_ROUNDS", "3"))
+        max_rounds = int(runtime_config.get("sandbox.simple_tools_max_rounds", 3))
         current_messages = list(messages)
         executed_tools: list[dict[str, Any]] = []
         sandbox_request = self._is_sandbox_request(user_message)
@@ -1048,7 +1044,7 @@ class SimpleAgentRunner:
 
     @staticmethod
     def _extract_recent_tool_results(messages: list[dict[str, Any]]) -> str:
-        max_result_chars = int(os.environ.get("SIMPLE_TOOLS_MAX_RESULT_CHARS", "12000"))
+        max_result_chars = int(runtime_config.get("sandbox.simple_tools_max_result_chars", 12000))
         results: list[str] = []
         for message in messages:
             content = message.get("content")
