@@ -18,7 +18,9 @@ class InterestManager:  # Reviewed
         self.reload_max_proactive_count()
 
     def reload_max_proactive_count(self):
-        self.max_proactive_count = int(runtime_config.get("schedule.max_proactive_times", 1))
+        self.max_proactive_count = int(
+            runtime_config.get("schedule.max_proactive_times", 1)
+        )
         self.decay_step = (
             50.0 / self.max_proactive_count if self.max_proactive_count > 0 else 50
         )

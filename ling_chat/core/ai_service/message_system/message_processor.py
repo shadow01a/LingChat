@@ -19,7 +19,9 @@ class MessageProcessor:
 
         # 用于分析图像信息
         self.desktop_analyzer = DesktopAnalyzer()
-        self.time_sense_enabled = bool(runtime_config.get("dialogue.use_time_sense", True))
+        self.time_sense_enabled = bool(
+            runtime_config.get("dialogue.use_time_sense", True)
+        )
 
         # 用于存储语音目录位置，其实在voice_maker已经有了
         self.game_status = game_status
@@ -46,7 +48,9 @@ class MessageProcessor:
 
             cleaned_text = re.sub(r"<.*?>|（.*?）", "", following_text).strip()
 
-            enable_translate = bool(runtime_config.get("dialogue.enable_translate", False))
+            enable_translate = bool(
+                runtime_config.get("dialogue.enable_translate", False)
+            )
             if not enable_translate:
                 # 直接使用 cleaned_text 作为日语文本
                 japanese_text = cleaned_text
@@ -239,7 +243,9 @@ class MessageProcessor:
         from ling_chat.core.ai_service.prompt_config import prompt_config
 
         # 从配置文件读取情绪限制设置
-        emotion_limit_enabled = not bool(runtime_config.get("dialogue.no_emotion_limit_prompt", False))
+        emotion_limit_enabled = not bool(
+            runtime_config.get("dialogue.no_emotion_limit_prompt", False)
+        )
         dialog_format_prompt_2 = prompt_config.get_emotion_limit_prompt(
             emotion_limit_enabled
         )

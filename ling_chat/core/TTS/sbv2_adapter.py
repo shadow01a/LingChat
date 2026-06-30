@@ -17,7 +17,9 @@ class SBV2Adapter(TTSBaseAdapter):
         if lang == "ja":
             lang = "JP"
 
-        api_url = runtime_config.get("tts.style_bert_vits2_url", "http://127.0.0.1:5000")
+        api_url = runtime_config.get(
+            "tts.style_bert_vits2_url", "http://127.0.0.1:5000"
+        )
         # 处理URL末尾斜杠，避免重复
         self.api_url = api_url.rstrip("/")
         self.audio_format = audio_format

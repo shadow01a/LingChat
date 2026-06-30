@@ -174,7 +174,9 @@ class EmotionClassifier:
             }
 
         # 如果传入的文本已经是有效的情感标签，直接返回而不进行预测
-        if text in self.label2id and bool(runtime_config.get("dialogue.enable_direct_emotion_classifier", False)):
+        if text in self.label2id and bool(
+            runtime_config.get("dialogue.enable_direct_emotion_classifier", False)
+        ):
             logger.debug(f"输入文本 '{text}' 已是有效情感标签，直接返回")
             return {
                 "label": text,

@@ -708,7 +708,9 @@ class Function:
         """
         清理所有临时文件
         """
-        temp_dir = Path(runtime_config.get("log.temp_voice_dir", str(temp_path / "data/voice")))
+        temp_dir = Path(
+            runtime_config.get("log.temp_voice_dir", str(temp_path / "data/voice"))
+        )
         self.format = runtime_config.get("tts.voice_format", "wav")
 
         for file in temp_dir.glob(f"*.{self.format}"):

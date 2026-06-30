@@ -38,7 +38,9 @@ class TTS:
         self.format = runtime_config.get("tts.voice_format", "wav")
 
         self.audio_format = self.format
-        self.temp_dir = Path(runtime_config.get("log.temp_voice_dir", str(temp_path / "data/voice")))
+        self.temp_dir = Path(
+            runtime_config.get("log.temp_voice_dir", str(temp_path / "data/voice"))
+        )
         self.temp_dir.mkdir(parents=True, exist_ok=True)
         self.enable = True  # 初始化时启用
 

@@ -19,7 +19,9 @@ class OpenAITTSAdapter(TTSBaseAdapter):
         audio_format: str = "wav",
     ):
         api_key = runtime_config.get("tts.openai_tts_api_key", "")
-        base_url = runtime_config.get("tts.openai_tts_base_url", "https://api.openai.com/v1")
+        base_url = runtime_config.get(
+            "tts.openai_tts_base_url", "https://api.openai.com/v1"
+        )
 
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self.model = model

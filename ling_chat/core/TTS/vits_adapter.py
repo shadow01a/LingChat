@@ -9,7 +9,9 @@ class VitsAdapter(TTSBaseAdapter):
     def __init__(
         self, speaker_id: int = 4, audio_format: str = "wav", lang: str = "ja"
     ):
-        api_url = runtime_config.get("tts.simple_vits_api_url", "http://127.0.0.1:23456")
+        api_url = runtime_config.get(
+            "tts.simple_vits_api_url", "http://127.0.0.1:23456"
+        )
         # 处理URL末尾斜杠，避免重复
         self.api_url = api_url.rstrip("/")
         self.params: dict[str, str | int | float] = {

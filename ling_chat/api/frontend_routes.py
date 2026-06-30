@@ -47,7 +47,9 @@ def get_static_files():
 
 def get_audio_files():
     """获取临时音频目录的 StaticFiles（用于 TTS 等动态生成的音频）"""
-    audio_path = Path(runtime_config.get("log.temp_voice_dir", str(temp_path / "audio")))
+    audio_path = Path(
+        runtime_config.get("log.temp_voice_dir", str(temp_path / "audio"))
+    )
     audio_path.mkdir(exist_ok=True)
     return NoCacheStaticFiles(directory=audio_path, html=False)
 

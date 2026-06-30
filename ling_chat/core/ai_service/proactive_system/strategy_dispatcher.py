@@ -27,7 +27,9 @@ class StrategyDispatcher:
         today_str = datetime.now().strftime("%m-%d")
 
         # 1. 检查 ImportantDay (如果是今天且未触发过)
-        enable_important_day = bool(runtime_config.get("schedule.enable_important_day_reminder", False))
+        enable_important_day = bool(
+            runtime_config.get("schedule.enable_important_day_reminder", False)
+        )
         if enable_important_day and self.settings.importantDays:
             last_talk_date = (
                 # last_dialog_time 理论上在 chat_history.py 加载后已经是 datetime，

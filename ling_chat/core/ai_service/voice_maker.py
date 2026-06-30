@@ -125,8 +125,12 @@ class VoiceMaker:
                     )
                 else:
                     self.tts_provider.init_gsv_adapter(
-                        ref_audio_path=runtime_config.get("tts.gpt_sovits_ref_audio", ""),
-                        prompt_text=runtime_config.get("tts.gpt_sovits_prompt_text", ""),
+                        ref_audio_path=runtime_config.get(
+                            "tts.gpt_sovits_ref_audio", ""
+                        ),
+                        prompt_text=runtime_config.get(
+                            "tts.gpt_sovits_prompt_text", ""
+                        ),
                     )
                     logger.warning("你正在使用环境变量中的 GPT-SoVITS 配置")
 

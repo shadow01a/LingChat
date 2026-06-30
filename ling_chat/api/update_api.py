@@ -50,7 +50,9 @@ def init_update_application():
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_file)))
 
     # 获取更新URL
-    update_base = str(runtime_config.get("server.update_url", "http://localhost:5100")).strip()
+    update_base = str(
+        runtime_config.get("server.update_url", "http://localhost:5100")
+    ).strip()
     if update_base.endswith("/updates"):
         update_url = update_base
     else:

@@ -15,7 +15,9 @@ class ImageGenerator:
 
     def __init__(self):
         self.api_key = runtime_config.get("visual.image_api_key", "")
-        self.base_url = runtime_config.get("visual.image_base_url", "https://api.openai.com/v1")
+        self.base_url = runtime_config.get(
+            "visual.image_base_url", "https://api.openai.com/v1"
+        )
 
         if not self.api_key:
             raise ValueError("IMAGE_API_KEY 环境变量未设置，无法使用图片生成功能。")

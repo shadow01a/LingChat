@@ -96,8 +96,12 @@ class Logger:
         self.app_name = app_name
         self.log_level = self._get_log_level(log_level)
         self.print_context = bool(runtime_config.get("debug.print_context", False))
-        self.show_timestamp = bool(runtime_config.get("debug.console_show_timestamp", show_timestamp))
-        self.enable_file_logging = bool(runtime_config.get("log.enable_file_logging", enable_file_logging))
+        self.show_timestamp = bool(
+            runtime_config.get("debug.console_show_timestamp", show_timestamp)
+        )
+        self.enable_file_logging = bool(
+            runtime_config.get("log.enable_file_logging", enable_file_logging)
+        )
 
         log_dir = log_file_directory or runtime_config.get("log.log_file_directory")
         if self.enable_file_logging and (not log_dir or log_dir == ""):

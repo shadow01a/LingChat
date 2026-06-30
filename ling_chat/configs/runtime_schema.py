@@ -9,6 +9,7 @@ from typing import Any, Dict, TypedDict
 
 class SettingMeta(TypedDict):
     """配置项元数据"""
+
     type: str  # text, bool, number, path, textarea
     description: str
     default: Any
@@ -16,6 +17,7 @@ class SettingMeta(TypedDict):
 
 class SectionMeta(TypedDict):
     """配置段元数据"""
+
     title: str
     description: str
     settings: Dict[str, SettingMeta]

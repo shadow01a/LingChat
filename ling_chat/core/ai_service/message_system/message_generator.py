@@ -187,7 +187,9 @@ class MessageGenerator:
             # 同时设置一个超时兜底，避免 publisher/consumer 出现意外死锁时
             # 主协程永远阻塞在 output_queue.get() 上 —— 那会让外层的
             # _generation_lock 永不释放，前端持续转圈无法恢复。
-            pipeline_idle_timeout = float(runtime_config.get("debug.pipeline_idle_timeout", 90))
+            pipeline_idle_timeout = float(
+                runtime_config.get("debug.pipeline_idle_timeout", 90)
+            )
             timed_out = False
             while True:
                 # 创建一个获取队列的任务

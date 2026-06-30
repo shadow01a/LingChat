@@ -91,8 +91,12 @@ def func_webview():
         _migrate_webview_storage()
         api: Api = Api()
 
-        frontend_bind_addr = runtime_config.get("server.frontend_bind_addr", "") or runtime_config.get("server.backend_bind_addr", "127.0.0.1")
-        frontend_port = runtime_config.get("server.frontend_port", "") or runtime_config.get("server.backend_port", "8765")
+        frontend_bind_addr = runtime_config.get(
+            "server.frontend_bind_addr", ""
+        ) or runtime_config.get("server.backend_bind_addr", "127.0.0.1")
+        frontend_port = runtime_config.get(
+            "server.frontend_port", ""
+        ) or runtime_config.get("server.backend_port", "8765")
 
         window = webview.create_window(
             "Ling Chat",

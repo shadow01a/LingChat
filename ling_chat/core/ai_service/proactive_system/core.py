@@ -35,7 +35,9 @@ class ProactiveSystem:
     ):
         self.config = config
         self.game_status = game_status
-        self.enabled = bool(runtime_config.get("schedule.enable_proactive_system", False))
+        self.enabled = bool(
+            runtime_config.get("schedule.enable_proactive_system", False)
+        )
 
         # 加载数据
         self.settings = self._load_settings()
@@ -57,9 +59,15 @@ class ProactiveSystem:
         self.proactive_loop_task: Optional[asyncio.Task] = None
 
     def start(self):
-        self.enabled = bool(runtime_config.get("schedule.enable_proactive_system", False))
-        enable_schedule = bool(runtime_config.get("schedule.enable_schedule_reminder", True))
-        enable_visual = bool(runtime_config.get("schedule.enable_visual_preception", True))
+        self.enabled = bool(
+            runtime_config.get("schedule.enable_proactive_system", False)
+        )
+        enable_schedule = bool(
+            runtime_config.get("schedule.enable_schedule_reminder", True)
+        )
+        enable_visual = bool(
+            runtime_config.get("schedule.enable_visual_preception", True)
+        )
 
         # 日程提醒独立于主动对话系统，单独控制
         if enable_schedule:

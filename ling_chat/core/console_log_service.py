@@ -96,8 +96,8 @@ class ConsoleLogService:
     def _get_default_filter_config(self) -> LogFilterConfig:
         """根据环境变量获取默认过滤配置"""
         # 检查是否启用前端日志转发
-        enable_forwarding = (
-            bool(runtime_config.get("log.enable_frontend_log_forwarding", True))
+        enable_forwarding = bool(
+            runtime_config.get("log.enable_frontend_log_forwarding", True)
         )
 
         # 创建过滤配置 - 前端转发所有日志，由后端根据LOG_LEVEL过滤

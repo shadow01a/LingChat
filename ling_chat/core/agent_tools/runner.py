@@ -49,8 +49,12 @@ class SimpleAgentRunner:
     def __init__(self, llm_model: LLMManager, game_status: GameStatus):
         self.llm_model = llm_model
         self.registry = SimpleToolRegistry(game_status)
-        self.max_result_chars = int(runtime_config.get("sandbox.simple_tools_max_result_chars", 12000))
-        self.planner_timeout_seconds = int(runtime_config.get("sandbox.simple_tools_planner_timeout", 45))
+        self.max_result_chars = int(
+            runtime_config.get("sandbox.simple_tools_max_result_chars", 12000)
+        )
+        self.planner_timeout_seconds = int(
+            runtime_config.get("sandbox.simple_tools_planner_timeout", 45)
+        )
 
     def is_enabled(self) -> bool:
         return bool(runtime_config.get("sandbox.enable_sandbox_commands", True))
@@ -1044,7 +1048,9 @@ class SimpleAgentRunner:
 
     @staticmethod
     def _extract_recent_tool_results(messages: list[dict[str, Any]]) -> str:
-        max_result_chars = int(runtime_config.get("sandbox.simple_tools_max_result_chars", 12000))
+        max_result_chars = int(
+            runtime_config.get("sandbox.simple_tools_max_result_chars", 12000)
+        )
         results: list[str] = []
         for message in messages:
             content = message.get("content")

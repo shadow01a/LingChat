@@ -152,7 +152,9 @@ class AIService:
             if "COMSUMERS" in updates:
                 try:
                     new_concurrency = int(
-                        runtime_config.get("dialogue.comsumers", self.message_generator.concurrency)
+                        runtime_config.get(
+                            "dialogue.comsumers", self.message_generator.concurrency
+                        )
                     )
                     if new_concurrency > 0:
                         self.message_generator.concurrency = new_concurrency
