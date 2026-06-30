@@ -133,7 +133,7 @@ jobs:
           
           # 添加上传到自定义服务器（使用 UWA_UPDATE_KEY）
           if [ -n "${{ secrets.UWA_UPDATE_KEY }}" ]; then
-            CMD="$CMD --upload-url \"https://lupdr.uwaspace.work\""
+            CMD="$CMD --upload-url \"https://lupd.uwaspace.work\""
             CMD="$CMD --upload-key \"${{ secrets.UWA_UPDATE_KEY }}\""
           fi
           
@@ -192,5 +192,5 @@ jobs:
           echo "上传目标："
           echo "  - GitHub Release: ${{ inputs.tag_name }}"
           echo "  - ModelScope: lingchat-research-studio/LingChat-release-mirror"
-          echo "  - 自定义服务器: https://lupdr.uwaspace.work"
+          echo "  - 自定义服务器: https://lupd.uwaspace.work"
           echo "=========================================="
