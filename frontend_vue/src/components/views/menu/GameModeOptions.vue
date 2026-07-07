@@ -1,24 +1,16 @@
 <template>
   <nav class="flex flex-col items-stretch w-[350px]">
-    <button
-      v-for="item in menuItems"
-      :key="item.label"
-      class="menu-item"
-      :class="{ 'menu-item--disabled': item.disabled }"
-      :disabled="item.disabled"
-      @click="item.action"
-    >
-      {{ item.label }}
-    </button>
+    <StartItem @click="startFreeDialogue" :disabled="false">自由对话模式</StartItem>
+    <StartItem @click="startStoryMode" :disabled="true">剧情模式（即将登场）</StartItem>
+    <StartItem @click="() => {}" :disabled="true">小游戏（开发中）</StartItem>
+    <StartItem @click="() => emit('back')" :disabled="false">返回</StartItem>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import '../../base'
 import { useRouter } from 'vue-router'
 import { getScriptList, type ScriptSummary } from '@/api/services/script-info'
-import { scriptHandler } from '@/api/websocket/handlers/script-handler'
-import { useUIStore } from '@/stores/modules/ui/ui'
 import { useGameStore } from '@/stores/modules/game'
 
 const emit = defineEmits<{
@@ -40,12 +32,6 @@ const props = defineProps({
 const router = useRouter()
 const gameStore = useGameStore()
 
-interface MenuItem {
-  label: string
-  action: () => void
-  disabled?: boolean
-}
-
 const startFreeDialogue = () => {
   gameStore.exitStoryMode()
   router.push('/chat')
@@ -56,17 +42,6 @@ const startFreeDialogue = () => {
 const startStoryMode = async () => {
   emit('open-scripts')
 }
-
-const menuItems = computed<MenuItem[]>(() => [
-  { label: '自由对话模式', action: startFreeDialogue },
-  {
-    label: '剧情模式（即将登场）',
-    action: startStoryMode,
-    disabled: true,
-  },
-  { label: '小游戏（开发中）', action: () => {}, disabled: true },
-  { label: '返回', action: () => emit('back') },
-])
 </script>
 
 <style scoped>
