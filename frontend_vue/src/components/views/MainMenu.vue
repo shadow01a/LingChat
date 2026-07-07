@@ -32,32 +32,32 @@
     >
       <!-- 主菜单 -->
       <Transition name="slide-left">
-        <div class="main-menu-page__menu" v-if="menuState === 'main'">
-          <MainMenuOptions
-            @start-game="showGameModeMenu"
-            @open-settings="handleOpenSettings"
-            @open-credits="handleOpenCredits"
-          />
-        </div>
+        <MainMenuOptions
+          v-if="menuState === 'main'"
+          @start-game="showGameModeMenu"
+          @open-settings="handleOpenSettings"
+          @open-credits="handleOpenCredits"
+        />
       </Transition>
 
       <!-- 游戏模式菜单 -->
       <Transition name="slide-right">
-        <div class="main-menu-page__menu" v-if="menuState === 'gameMode'">
-          <GameModeOptions
-            @back="backToMainMenu"
-            @open-scripts="showScriptModeMenu"
-            :loadingScripts="loadingScripts"
-            :scripts="scripts"
-          />
-        </div>
+        <GameModeOptions
+          v-if="menuState === 'gameMode'"
+          @back="backToMainMenu"
+          @open-scripts="showScriptModeMenu"
+          :loadingScripts="loadingScripts"
+          :scripts="scripts"
+        />
       </Transition>
 
       <!-- 剧本模式菜单 -->
       <Transition name="slide-right">
-        <div class="main-menu-page__menu" v-if="menuState === 'scriptMode'">
-          <ScriptModeOptions @back="showGameModeMenu" :scripts="scripts" />
-        </div>
+        <ScriptModeOptions
+          v-if="menuState === 'scriptMode'"
+          @back="showGameModeMenu"
+          :scripts="scripts"
+        />
       </Transition>
 
       <img
