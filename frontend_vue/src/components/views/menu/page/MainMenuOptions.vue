@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import '../../base'
+import '../base'
 
 const emit = defineEmits<{
   (e: 'start-game'): void

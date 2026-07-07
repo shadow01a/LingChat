@@ -14,7 +14,7 @@
     </StartItem>
 
     <!-- 分页控制 -->
-    <div class="pagination-controls">
+    <div>
       <StartItem @click="currentPage--" :disabled="currentPage === 1"><</StartItem>
       <StartItem disabled style="font-size: 28px">{{ currentPage }} / {{ totalPages }}</StartItem>
       <StartItem @click="currentPage++" :disabled="currentPage === totalPages">></StartItem>
@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import '../base'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { type ScriptSummary } from '@/api/services/script-info'

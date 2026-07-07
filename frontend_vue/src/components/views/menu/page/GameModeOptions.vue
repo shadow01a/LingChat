@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import '../../base'
+import '../base'
 import { useRouter } from 'vue-router'
 import { getScriptList, type ScriptSummary } from '@/api/services/script-info'
 import { useGameStore } from '@/stores/modules/game'
