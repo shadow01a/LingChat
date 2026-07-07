@@ -1,10 +1,10 @@
 <template>
-  <nav class="flex flex-col items-stretch w-[350px]">
+  <StartList>
     <StartItem @click="startFreeDialogue" :disabled="false">自由对话模式</StartItem>
-    <StartItem @click="startStoryMode" :disabled="true">剧情模式（即将登场）</StartItem>
+    <StartItem @click="startStoryMode" :disabled="false">剧情模式（即将登场）</StartItem>
     <StartItem @click="() => {}" :disabled="true">小游戏（开发中）</StartItem>
     <StartItem @click="() => emit('back')" :disabled="false">返回</StartItem>
-  </nav>
+  </StartList>
 </template>
 
 <script setup lang="ts">

@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex flex-col items-stretch w-87.5">
+  <StartList>
     <button
       v-for="(script, index) in currentPageScripts"
       :key="script.script_name"
@@ -29,7 +29,7 @@
       <!-- 返回按钮 -->
       <button key="back" class="menu-item" @click="backToGameModeMenu">返回</button>
     </div>
-  </nav>
+  </StartList>
 </template>
 
 <script setup lang="ts">

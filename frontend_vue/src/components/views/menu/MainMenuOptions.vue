@@ -1,11 +1,11 @@
 <template>
-  <nav class="flex flex-col items-stretch w-87.5">
+  <StartList>
     <StartItem @click="() => emit('start-game')">开始游戏</StartItem>
     <StartItem @click="() => emit('open-settings', 'save')">继续游戏</StartItem>
     <StartItem @click="() => emit('open-settings')">设置</StartItem>
     <StartItem @click="() => emit('open-credits')">致谢</StartItem>
     <StartItem @click="exitGame">退出游戏</StartItem>
-  </nav>
+  </StartList>
 </template>
 
 <script setup lang="ts">
