@@ -1,13 +1,7 @@
 <template>
-  <nav class="flex flex-col items-stretch w-[350px]">
+  <nav class="flex
+    flex-col
+    items-stretch">
     <slot />
   </nav>
 </template>
-
-<script setup lang="ts"></script>
-
-<style scoped>
-nav {
-  margin: 100px;
-}
-</style>

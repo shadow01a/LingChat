@@ -7,10 +7,16 @@
     <MainChat v-if="currentPage === 'gameMainView'" />
 
     <!-- 背景层（最底层） -->
-    <div class="video-background" ref="bgRef"></div>
+    <div
+      class="video-background"
+      ref="bgRef"
+    ></div>
 
     <!-- 流星层（SVG动画） -->
-    <MeteorAnimation :meteors-enabled="meteorsEnabled" :meteor-fps="meteorFps" />
+    <MeteorAnimation
+      :meteors-enabled="meteorsEnabled"
+      :meteor-fps="meteorFps"
+    />
 
     <!-- 星星粒子层（位于背景和人物之间） -->
     <StarAnimation
@@ -20,17 +26,22 @@
     />
 
     <!-- 人物图层（位于星星之上，菜单之下） -->
-    <img class="character-image" ref="charRef" src="../../assets/images/alona.webp" alt="人物" />
+    <img
+      class="character-image"
+      ref="charRef"
+      src="../../assets/images/alona.webp"
+      alt="人物"
+    />
 
     <!-- 菜单容器，绑定鼠标移动和移出事件实现视差 -->
-    <div
+    <StartPage
       class="main-menu-page__container"
       v-if="currentPage === 'mainMenu'"
       ref="containerRef"
       @mousemove="handleMouseMove"
       @mouseleave="handleMouseLeave"
     >
-      <!-- 主菜单 -->
+      <!-- 游戏开始菜单 -->
       <Transition name="slide-left">
         <MainMenuOptions
           v-if="menuState === 'main'"
@@ -60,22 +71,19 @@
         />
       </Transition>
 
-      <img
-        src="../../assets/images/LingChatLogo.webp"
-        alt="LingChatLogo"
-        class="main-menu-page__logo cursor-pointer hover:scale-105 transition-transform duration-300"
-        @click="goToGithub"
-      />
-    </div>
+      <StartLogo @click="goToGithub" />
+    </StartPage>
   </div>
 </template>
 
 <script setup lang="ts">
+import './menu/base'
+import './menu/page'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { MainChat } from './'
 import { SettingsPanel as Settings } from '../settings/'
-import './menu/page'
+
 import { useUIStore } from '../../stores/modules/ui/ui'
 import { useSettingsStore } from '../../stores/modules/settings'
 import { getScriptList, type ScriptSummary } from '@/api/services/script-info'
@@ -254,7 +262,7 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-center;
   align-items: center;
   position: absolute; /* 确保它覆盖全屏叠加在顶层 */
   top: 0;
@@ -294,13 +302,13 @@ onMounted(() => {
 
 .slide-left-enter-from,
 .slide-left-leave-to {
-  transform: translateX(-120%);
+  transform: translateX(-100vw);
   opacity: 0;
 }
 
 .slide-right-enter-from,
 .slide-right-leave-to {
-  transform: translateX(120%);
+  transform: translateX(100vw);
   opacity: 0;
 }
 
