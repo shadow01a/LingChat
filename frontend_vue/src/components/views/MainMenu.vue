@@ -35,7 +35,6 @@
 
     <!-- 菜单容器，绑定鼠标移动和移出事件实现视差 -->
     <StartPage
-      class="main-menu-page__container"
       v-if="currentPage === 'mainMenu'"
       ref="containerRef"
       @mousemove="handleMouseMove"
@@ -302,13 +301,13 @@ onMounted(() => {
 
 .slide-left-enter-from,
 .slide-left-leave-to {
-  transform: translateX(-100vw);
+  transform: translateX(-120vw);
   opacity: 0;
 }
 
 .slide-right-enter-from,
 .slide-right-leave-to {
-  transform: translateX(100vw);
+  transform: translateX(120vw);
   opacity: 0;
 }
 

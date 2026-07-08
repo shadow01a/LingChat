@@ -9,7 +9,7 @@
       absolute
       top-0
       right-0
-      h-auto
+      h-[16vw]
       w-auto
       max-w-[40vw]
       drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]

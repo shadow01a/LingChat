@@ -1,12 +1,17 @@
 <template>
   <div
-    class="z-3
-      h-full
-      w-full
-      justify-start
+    class="z-5
+      absolute
+      top-0
+      bottom-0
+      left-0
+      right-0
+      border-[6vw]
+      border-transparent
+      flex
       items-center
-      transform-3d
-      will-change-transform"
+      justify-center
+      md:justify-start"
     v-bind="$attrs"
   >
     <slot />

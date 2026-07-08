@@ -3,7 +3,6 @@
     class="text-white
       border-none
       mt-[15px]
-      px-[5px]
       py-[5px]
       text-[clamp(32px,4vw,72px)]
       bg-transparent
