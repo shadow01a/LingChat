@@ -4,7 +4,7 @@
       border-none
       mt-[15px]
       py-[5px]
-      text-[clamp(32px,4vw,72px)]
+      text-[clamp(40px,4vw,72px)]
       bg-transparent
       text-justify
       cursor-pointer

@@ -27,7 +27,11 @@
 
     <!-- 人物图层（位于星星之上，菜单之下） -->
     <img
-      class="character-image"
+      class="character-image
+        w-full
+        h-full
+        object-cover
+        object-center"
       ref="charRef"
       src="../../assets/images/alona.webp"
       alt="人物"
