@@ -3,5 +3,9 @@
   "singleQuote": true,
   "printWidth": 100,
   "trailingComma": "all",
-  "tabWidth": 2
+  "proseWrap": "always",
+  "singleAttributePerLine": true,
+  "tabWidth": 2,
+  "plugins": ["prettier-plugin-classnames"],
+  "classnamesPrintWidth": 0
 }
