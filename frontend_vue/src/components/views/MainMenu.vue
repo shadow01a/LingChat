@@ -7,10 +7,16 @@
     <MainChat v-if="currentPage === 'gameMainView'" />
 
     <!-- 背景层（最底层） -->
-    <div class="video-background" ref="bgRef"></div>
+    <div
+      class="video-background"
+      ref="bgRef"
+    ></div>
 
     <!-- 流星层（SVG动画） -->
-    <MeteorAnimation :meteors-enabled="meteorsEnabled" :meteor-fps="meteorFps" />
+    <MeteorAnimation
+      :meteors-enabled="meteorsEnabled"
+      :meteor-fps="meteorFps"
+    />
 
     <!-- 星星粒子层（位于背景和人物之间） -->
     <StarAnimation
@@ -20,65 +26,69 @@
     />
 
     <!-- 人物图层（位于星星之上，菜单之下） -->
-    <img class="character-image" ref="charRef" src="../../assets/images/alona.webp" alt="人物" />
+    <img
+      class="character-image
+        w-full
+        h-full
+        object-cover
+        object-center"
+      ref="charRef"
+      src="../../assets/images/alona.webp"
+      alt="人物"
+    />
 
     <!-- 菜单容器，绑定鼠标移动和移出事件实现视差 -->
-    <div
-      class="main-menu-page__container"
+    <StartPage
       v-if="currentPage === 'mainMenu'"
       ref="containerRef"
       @mousemove="handleMouseMove"
       @mouseleave="handleMouseLeave"
     >
-      <!-- 主菜单 -->
+      <!-- 游戏开始菜单 -->
       <Transition name="slide-left">
-        <div class="main-menu-page__menu" v-if="menuState === 'main'">
-          <MainMenuOptions
-            @start-game="showGameModeMenu"
-            @open-settings="handleOpenSettings"
-            @open-credits="handleOpenCredits"
-          />
-        </div>
+        <MainMenuOptions
+          v-if="menuState === 'main'"
+          @start-game="showGameModeMenu"
+          @open-settings="handleOpenSettings"
+          @open-credits="handleOpenCredits"
+        />
       </Transition>
 
       <!-- 游戏模式菜单 -->
       <Transition name="slide-right">
-        <div class="main-menu-page__menu" v-if="menuState === 'gameMode'">
-          <GameModeOptions
-            @back="backToMainMenu"
-            @open-scripts="showScriptModeMenu"
-            :loadingScripts="loadingScripts"
-            :scripts="scripts"
-          />
-        </div>
+        <GameModeOptions
+          v-if="menuState === 'gameMode'"
+          @back="backToMainMenu"
+          @open-scripts="showScriptModeMenu"
+          :loadingScripts="loadingScripts"
+          :scripts="scripts"
+        />
       </Transition>
 
       <!-- 剧本模式菜单 -->
       <Transition name="slide-right">
-        <div class="main-menu-page__menu" v-if="menuState === 'scriptMode'">
-          <ScriptModeOptions @back="showGameModeMenu" :scripts="scripts" />
-        </div>
+        <ScriptModeOptions
+          v-if="menuState === 'scriptMode'"
+          @back="showGameModeMenu"
+          :scripts="scripts"
+        />
       </Transition>
 
-      <img
-        src="../../assets/images/LingChatLogo.webp"
-        alt="LingChatLogo"
-        class="main-menu-page__logo cursor-pointer hover:scale-105 transition-transform duration-300"
-        @click="goToGithub"
-      />
-    </div>
+      <StartLogo @click="goToGithub" />
+    </StartPage>
   </div>
 </template>
 
 <script setup lang="ts">
+import './menu/base'
+import './menu/page'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { MainChat } from './'
 import { SettingsPanel as Settings } from '../settings/'
-import { MainMenuOptions, GameModeOptions } from './menu'
+
 import { useUIStore } from '../../stores/modules/ui/ui'
 import { useSettingsStore } from '../../stores/modules/settings'
-import ScriptModeOptions from './menu/ScriptModeOptions.vue'
 import { getScriptList, type ScriptSummary } from '@/api/services/script-info'
 import { saveContinue } from '@/api/services/save'
 import MeteorAnimation from '../game/standard/animations/MeteorAnimation.vue'
@@ -255,7 +265,7 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-center;
   align-items: center;
   position: absolute; /* 确保它覆盖全屏叠加在顶层 */
   top: 0;
@@ -295,13 +305,13 @@ onMounted(() => {
 
 .slide-left-enter-from,
 .slide-left-leave-to {
-  transform: translateX(-120%);
+  transform: translateX(-120vw);
   opacity: 0;
 }
 
 .slide-right-enter-from,
 .slide-right-leave-to {
-  transform: translateX(120%);
+  transform: translateX(120vw);
   opacity: 0;
 }
 

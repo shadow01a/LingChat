@@ -1,0 +1,29 @@
+<template>
+  <button
+    class="text-white
+      border-none
+      mt-[15px]
+      py-[5px]
+      text-[clamp(40px,4vw,72px)]
+      bg-transparent
+      text-justify
+      cursor-pointer
+      whitespace-nowrap
+      text-shadow-[0_2px_4px_rgba(0,0,0,0.3)]
+      transition-all
+      duration-300
+      ease-[cubic-bezier(0.18,0.89,0.32,1.28)]
+      font-['Maoken_Assorted_Sans',-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,'Helvetica_Neue',Arial,sans-serif]
+      hover:text-[#f0f0f0]
+      hover:text-shadow-[0_0_6px_rgba(255,255,255,0.4)]
+      hover:scale-105
+      hover:translate-y-[-8px]
+      disabled:opacity-50
+      disabled:cursor-not-allowed
+      hover:disabled:text-white
+      hover:disabled:text-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+    v-bind="$attrs"
+  >
+    <slot />
+  </button>
+</template>

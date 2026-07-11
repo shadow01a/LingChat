@@ -1,38 +1,31 @@
 <template>
-  <nav class="flex flex-col items-stretch w-87.5">
-    <button
+  <StartList>
+    <StartItem
       v-for="(script, index) in currentPageScripts"
       :key="script.script_name"
-      class="menu-item"
       @click="selectScript(script)"
     >
       {{ script.script_name }}
-    </button>
+    </StartItem>
 
     <!-- 占位 -->
-    <button
-      v-for="n in pageSize - currentPageScripts.length"
-      :key="'placeholder-' + n"
-      class="menu-item menu-item--disabled"
-      disabled
-    >
+    <StartItem v-for="n in pageSize - currentPageScripts.length" :key="'placeholder-' + n" disabled>
       {{ '\u00A0' }}
-    </button>
+    </StartItem>
 
     <!-- 分页控制 -->
-    <div class="pagination-controls">
-      <button class="menu-item" :disabled="currentPage === 1" @click="currentPage--"><</button>
-      <span class="menu-item" style="font-size: 28px">{{ currentPage }} / {{ totalPages }}</span>
-      <button class="menu-item" :disabled="currentPage === totalPages" @click="currentPage++">
-        >
-      </button>
+    <div>
+      <StartItem @click="currentPage--" :disabled="currentPage === 1"><</StartItem>
+      <StartItem disabled style="font-size: 28px">{{ currentPage }} / {{ totalPages }}</StartItem>
+      <StartItem @click="currentPage++" :disabled="currentPage === totalPages">></StartItem>
       <!-- 返回按钮 -->
-      <button key="back" class="menu-item" @click="backToGameModeMenu">返回</button>
+      <StartItem @click="backToGameModeMenu" :disabled="false">返回</StartItem>
     </div>
-  </nav>
+  </StartList>
 </template>
 
 <script setup lang="ts">
+import '../base'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { type ScriptSummary } from '@/api/services/script-info'
@@ -86,6 +79,4 @@ const currentPageScripts = computed(() => {
 })
 </script>
 
-<style scoped>
-@import './menu-item.css';
-</style>
+<style scoped></style>
