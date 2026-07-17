@@ -148,6 +148,13 @@ impl StreamProducer {
                         events::emit_thinking_progress(&self.app, thinking_length);
                     }
                 }
+                LlmChunk::ToolCall(tc) => {
+                    tracing::info!(
+                        "[StreamProducer] 检测到工具调用: {} -> {}",
+                        tc.function.name,
+                        tc.function.arguments,
+                    );
+                }
             }
         }
 

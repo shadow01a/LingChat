@@ -1,7 +1,11 @@
+use std::sync::Arc;
+
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::ai_service::message_system::events;
 use crate::ai_service::message_system::generator::{GeneratorDeps, MessageGenerator};
+use crate::ai_service::tool_system::registry::ToolRegistry;
+use crate::ai_service::tool_system::runner::ToolRunner;
 use crate::ai_service::types::{LineAttributeExt, LineBase};
 use crate::api::game::{compute_user_message_seqs, GameLineInit};
 use crate::config::AppConfig;
@@ -80,6 +84,11 @@ pub async fn send_chat_message(
         }
     }
 
+    let tool_runner = {
+        let registry = Arc::new(ToolRegistry::new());
+        Arc::new(ToolRunner::new(registry))
+    };
+
     let deps = GeneratorDeps {
         app: app.clone(),
         db: state.db.clone(),
@@ -89,6 +98,7 @@ pub async fn send_chat_message(
         llm,
         concurrency,
         god_agent: state.god_agent.clone(),
+        tool_runner: Some(tool_runner),
         suppress_thinking: false,
     };
 

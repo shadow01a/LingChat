@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
+use futures_util::StreamExt;
 use sea_orm::DatabaseConnection;
 use tauri::{AppHandle, Emitter};
 use tokio::sync::{mpsc, Mutex};
@@ -18,13 +19,14 @@ use tokio::sync::{mpsc, Mutex};
 use crate::ai_service::game_system::game_status::GameStatus;
 use crate::ai_service::game_system::scene_store::SceneStore;
 use crate::ai_service::god_agent::GodAgentCore;
-use crate::ai_service::llm::LlmClient;
+use crate::ai_service::llm::{LlmChunk, LlmClient};
 use crate::ai_service::message_system::events;
 use crate::ai_service::message_system::processor::{
     EmotionSegment, MessageProcessor, UserMessageOutcome,
 };
 use crate::ai_service::message_system::producer::{SentenceItem, StreamProducer};
 use crate::ai_service::message_system::responses::{event_names, ReplyResponse};
+use crate::ai_service::tool_system::runner::ToolRunner;
 use crate::ai_service::translator::Translator;
 use crate::ai_service::types::{LineAttributeExt, LineBase, LlmMessage};
 use crate::api::data_dir;
@@ -43,6 +45,8 @@ pub struct GeneratorDeps {
     pub concurrency: usize,
     /// 上帝 Agent（多人自由对话编排器），`None` 时退化为单角色对话。
     pub god_agent: Option<Arc<GodAgentCore>>,
+    /// 工具运行器（关键词匹配 + LLM tool calling），`None` 时禁用工具系统。
+    pub tool_runner: Option<Arc<ToolRunner>>,
     /// 抑制 ai:thinking 事件。用于系统触发的后台生成（如入场问候）。
     pub suppress_thinking: bool,
 }
@@ -454,17 +458,158 @@ impl MessageGenerator {
         }
         drop(publish_tx);
 
-        // producer：LLM 流 -> 句子
-        let llm_stream = self.deps.llm.complete_stream(&context).await?;
-        let producer = StreamProducer::new(llm_stream, sentence_tx, self.deps.app.clone());
-        let acc = producer.run().await.context("StreamProducer 失败")?;
+        // ── 工具感知的流式生成 ──
+        let acc = if let Some(tool_runner) = &self.deps.tool_runner {
+            self.run_tool_aware_stream(
+                tool_runner,
+                context,
+                sentence_tx,
+                &mut consumer_tasks,
+            )
+            .await?
+        } else {
+            // 无 ToolRunner：传统流式生成
+            let llm_stream = self.deps.llm.complete_stream(&context).await?;
+            let producer = StreamProducer::new(llm_stream, sentence_tx, self.deps.app.clone());
+            let acc = producer.run().await.context("StreamProducer 失败")?;
+            for t in consumer_tasks {
+                let _ = t.await;
+            }
+            acc
+        };
 
-        for t in consumer_tasks {
-            let _ = t.await;
-        }
         let _ = publisher.await;
-
         Ok(acc)
+    }
+
+    /// 工具感知的流式生成：多轮检测 tool call vs 文本，处理后再进入 StreamProducer。
+    async fn run_tool_aware_stream(
+        &self,
+        tool_runner: &ToolRunner,
+        mut context: Vec<LlmMessage>,
+        sentence_tx: mpsc::Sender<SentenceItem>,
+        consumer_tasks: &mut Vec<tokio::task::JoinHandle<()>>,
+    ) -> Result<String> {
+        let tools = tool_runner.get_tool_definitions_for_llm(false);
+        let max_rounds = 3usize;
+
+        // 关键词快速路由（零延迟）：匹配到就直接执行工具并注入结果
+        let user_msg = context.iter()
+            .rev()
+            .find(|m| m.role == "user")
+            .map(|m| m.content.clone())
+            .unwrap_or_default();
+        let context_before = context.len();
+        if !user_msg.is_empty() {
+            context = tool_runner.enrich_context_if_needed(context, user_msg, false).await?;
+        }
+
+        if context.len() > context_before {
+            // 关键词已匹配并注入了工具结果 → 直接走纯文本流式回复，不再进工具循环
+            let llm_stream = self.deps.llm.complete_stream(&context).await?;
+            let producer = StreamProducer::new(llm_stream, sentence_tx, self.deps.app.clone());
+            let acc = producer.run().await.context("StreamProducer 失败")?;
+            for t in consumer_tasks.drain(..) {
+                let _ = t.await;
+            }
+            return Ok(acc);
+        }
+
+        // 关键词未命中 → 走带工具的流式循环，让 LLM 自行决定是否使用工具
+        let mut executed_any_tool = false;
+        for round in 0..max_rounds {
+            // 最后一轮且有工具被执行过：不再传 tools，强制 LLM 生成文本回复
+            let is_final_round = executed_any_tool && round == max_rounds - 1;
+            let mut llm_stream = if is_final_round {
+                self.deps.llm.complete_stream(&context).await?
+            } else {
+                self.deps
+                    .llm
+                    .complete_stream_with_tools(&context, &tools, None)
+                    .await?
+            };
+
+            // peek 跳过 reasoning chunk，找到真实的第一帧（ToolCall 或 Content）
+            let mut reasoning_buffer: Vec<String> = Vec::new();
+            let first_real = loop {
+                match llm_stream.next().await {
+                    Some(Ok(LlmChunk::Reasoning(text))) => reasoning_buffer.push(text),
+                    other => break other,
+                }
+            };
+
+            match first_real {
+                Some(Ok(LlmChunk::ToolCall(tc))) => {
+                    // ── 工具调用路径：丢弃 reasoning（是关于工具决策的思考）──
+                    let mut tool_calls = vec![tc];
+                    while let Some(chunk) = llm_stream.next().await {
+                        if let Ok(LlmChunk::ToolCall(tc)) = chunk {
+                            tool_calls.push(tc);
+                        }
+                    }
+                    executed_any_tool = true;
+                    for tc in &tool_calls {
+                        let args: serde_json::Value =
+                            serde_json::from_str(&tc.function.arguments)
+                                .unwrap_or(serde_json::Value::Null);
+                        let result = tool_runner
+                            .execute_tool(&tc.function.name, args)
+                            .await;
+                        let result_text =
+                            serde_json::to_string_pretty(&result).unwrap_or_default();
+                        if let Some(last_user) = context.iter_mut().rev().find(|m| m.role == "user") {
+                            last_user.content.push_str(&format!(
+                                "\n\n[工具执行结果 #{}]\n工具: {}\n\
+                                 以下 JSON 是 LingChat 内部工具系统获取到的数据，请以此为准回答用户。\n\
+                                 若相关字段为空或 null，说明该项尚未设置。\n\
+                                 保持正常的对话格式，包含情绪标签。\n\
+                                 {}",
+                                round + 1,
+                                tc.function.name,
+                                result_text
+                            ));
+                        }
+                    }
+                    // 继续下一轮
+                }
+                Some(Ok(chunk)) => {
+                    // ── 文本回复路径：reasoning 放回流前面 ──
+                    let reasoning_chunks: Vec<Result<LlmChunk>> = reasoning_buffer
+                        .into_iter()
+                        .map(|t| Ok(LlmChunk::Reasoning(t)))
+                        .collect();
+                    let initial = futures_util::stream::iter(reasoning_chunks)
+                        .chain(futures_util::stream::iter(vec![Ok(chunk)]));
+                    let remaining = initial.chain(llm_stream);
+                    let producer = StreamProducer::new(
+                        Box::pin(remaining),
+                        sentence_tx,
+                        self.deps.app.clone(),
+                    );
+                    let acc = producer.run().await.context("StreamProducer 失败")?;
+                    for t in consumer_tasks.drain(..) {
+                        let _ = t.await;
+                    }
+                    return Ok(acc);
+                }
+                Some(Err(e)) => return Err(e),
+                None => break,
+            }
+        }
+
+        // 安全兜底：执行过工具但超循环仍无文本 → 强制不带工具调用一次
+        if executed_any_tool {
+            tracing::info!("[ToolAwareStream] 工具已执行但无文本回复，兜底调用 complete_stream");
+            let llm_stream = self.deps.llm.complete_stream(&context).await?;
+            let producer = StreamProducer::new(llm_stream, sentence_tx, self.deps.app.clone());
+            let acc = producer.run().await.context("StreamProducer 兜底失败")?;
+            for t in consumer_tasks.drain(..) {
+                let _ = t.await;
+            }
+            return Ok(acc);
+        }
+
+        Ok(String::new())
     }
 }
 

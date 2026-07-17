@@ -248,6 +248,7 @@ impl ProactiveSystem {
                     .ok_or_else(|| anyhow::anyhow!("LLM is not configured"))?,
                 concurrency: 1,
                 god_agent: None,
+                tool_runner: None,
                 suppress_thinking: false,
             };
             MessageGenerator::new(deps)

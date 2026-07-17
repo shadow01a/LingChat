@@ -19,7 +19,7 @@ use futures_util::Stream;
 use reqwest::Client;
 
 use crate::ai_service::llm::provider::LlmResponseWithTools;
-use crate::ai_service::types::{LlmMessage, ToolDefinition};
+use crate::ai_service::types::{LlmMessage, ToolCall, ToolDefinition};
 
 /// 运行时 LLM 配置。
 #[derive(Debug, Clone)]
@@ -40,13 +40,15 @@ impl LlmConfig {
     }
 }
 
-/// LLM 流式返回的一个片段：可能是正式回复内容，也可能是思考链内容。
+/// LLM 流式返回的一个片段：可能是正式回复内容、思考链内容，或是工具调用。
 #[derive(Debug, Clone)]
 pub enum LlmChunk {
     /// 正式回复内容（会被前端显示并加入记忆）。
     Content(String),
     /// 思考链内容（仅用于实时统计，不加入正式回复）。
     Reasoning(String),
+    /// 工具调用完成（包含完整的工具名称和参数）
+    ToolCall(ToolCall),
 }
 
 pub type ChunkStream = Pin<Box<dyn Stream<Item = Result<LlmChunk>> + Send>>;
@@ -107,6 +109,21 @@ impl LlmClient {
         }
         self.provider
             .complete_with_tools(&self.http, messages, tools, tool_choice)
+            .await
+    }
+
+    /// 流式 + function calling。
+    pub async fn complete_stream_with_tools(
+        &self,
+        messages: &[LlmMessage],
+        tools: &[ToolDefinition],
+        tool_choice: Option<&str>,
+    ) -> Result<ChunkStream> {
+        if !self.cfg.is_usable() {
+            return Err(anyhow!("LLM 未配置 API key 或 model"));
+        }
+        self.provider
+            .complete_stream_with_tools(&self.http, messages, tools, tool_choice)
             .await
     }
 }

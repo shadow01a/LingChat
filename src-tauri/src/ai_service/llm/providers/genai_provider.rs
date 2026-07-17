@@ -256,6 +256,100 @@ impl LlmProvider for GenaiProvider {
         Ok(Box::pin(output))
     }
 
+    async fn complete_stream_with_tools(
+        &self,
+        _http: &Client,
+        messages: &[LlmMessage],
+        tools: &[ToolDefinition],
+        tool_choice: Option<&str>,
+    ) -> Result<ChunkStream> {
+        let chat_req = self.build_chat_request(messages, Some(tools));
+        crate::utils::llm_request_logger::log_request_body(
+            &self.model,
+            &serde_json::to_value(&chat_req).unwrap_or_default(),
+        );
+        let opts = self.build_chat_options(tool_choice);
+
+        let stream_resp = self
+            .client
+            .exec_chat_stream(&self.model, chat_req, Some(&opts))
+            .await
+            .map_err(|e| anyhow!("genai 流式工具请求失败: {e}"))?;
+
+        let mut inner = stream_resp.stream;
+
+        // 缓冲整个流，因为需要在流结束时才能拿到最终累积的工具调用
+        let mut content = String::new();
+        let mut reasoning = String::new();
+        let mut tool_calls: Vec<crate::ai_service::types::ToolCall> = Vec::new();
+
+        while let Some(event) = inner.next().await {
+            match event.map_err(|e| anyhow!("genai 流式工具事件错误: {e}"))? {
+                ChatStreamEvent::Chunk(chunk) => {
+                    if !chunk.content.is_empty() {
+                        content.push_str(&chunk.content);
+                    }
+                }
+                ChatStreamEvent::ReasoningChunk(chunk) => {
+                    if !chunk.content.is_empty() {
+                        reasoning.push_str(&chunk.content);
+                    }
+                }
+                ChatStreamEvent::ThoughtSignatureChunk(_) => {}
+                ChatStreamEvent::ToolCallChunk(_) => {
+                    // 不在流中逐个发射，避免增量参数不完整的问题
+                    // 在 End 事件中取 genai 内部累积完成的最终结果
+                }
+                ChatStreamEvent::End(end) => {
+                    // 从 captured_content 取完整累积的工具调用
+                    if let Some(captured) = end.captured_content {
+                        let parts = captured.into_parts();
+                        for part in parts {
+                            match part {
+                                genai::chat::ContentPart::ToolCall(tc) => {
+                                    tool_calls.push(Self::convert_tool_call(&tc));
+                                }
+                                genai::chat::ContentPart::Text(text) => {
+                                    content.push_str(&text);
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                    if let Some(r) = end.captured_reasoning_content {
+                        if !r.is_empty() {
+                            reasoning = r;
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        // 根据是否有工具调用决定发射顺序
+        let out = async_stream::try_stream! {
+            if !tool_calls.is_empty() {
+                // 工具调用路径：先发射 reasoning（如有），再发射所有 tool call
+                if !reasoning.is_empty() {
+                    yield LlmChunk::Reasoning(reasoning);
+                }
+                for tc in tool_calls {
+                    yield LlmChunk::ToolCall(tc);
+                }
+            } else {
+                // 纯文本路径：先 reasoning 再 content
+                if !reasoning.is_empty() {
+                    yield LlmChunk::Reasoning(reasoning);
+                }
+                if !content.is_empty() {
+                    yield LlmChunk::Content(content);
+                }
+            }
+        };
+
+        Ok(Box::pin(out))
+    }
+
     async fn complete_with_tools(
         &self,
         _http: &Client,

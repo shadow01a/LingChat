@@ -829,6 +829,7 @@ pub async fn notify_player_entry(app: AppHandle) -> Result<(), String> {
         llm,
         concurrency,
         god_agent: state.god_agent.clone(),
+        tool_runner: None,
         suppress_thinking: true,
     };
 
