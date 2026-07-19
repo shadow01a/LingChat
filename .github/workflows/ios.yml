@@ -48,6 +48,9 @@ jobs:
       #    mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
        #   echo $PROVISIONING_PROFILE_BASE64 | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
-      # 尝试构建，这次会尝试自动签名
-      - name: Build iOS Project
-        run: pnpm tauri ios build
+      - name: 构建 iOS App
+        run: |
+            export CODE_SIGN_IDENTITY=""
+            export CODE_SIGNING_REQUIRED="NO"
+    
+            pnpm run ios build
