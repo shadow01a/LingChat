@@ -25,6 +25,12 @@ jobs:
             version: latest
         
       - name: Install Dependencies
+        env:
+         APPLE_DEVELOPMENT_TEAM: "V2T5CJNXU7"
+         IOS_CERTIFICATE: ${{ secrets.IOS_CERTIFICATE }}
+         IOS_CERTIFICATE_PASSWORD: "1"
+         IOS_MOBILE_PROVISION: ${{ secrets.IOS_MOBILE_PROVISION }}
+
         run: pnpm i && git lfs pull src-tauri/icons/icon.png && pnpm run init && pnpm tauri ios init
 
       # 关键步骤：在构建前安装证书和描述文件
@@ -51,7 +57,7 @@ jobs:
         env:
          APPLE_DEVELOPMENT_TEAM: "V2T5CJNXU7"
          IOS_CERTIFICATE: ${{ secrets.IOS_CERTIFICATE }}
-         IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+         IOS_CERTIFICATE_PASSWORD: "1"
          IOS_MOBILE_PROVISION: ${{ secrets.IOS_MOBILE_PROVISION }}
            #APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
            #APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
