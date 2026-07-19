@@ -47,10 +47,12 @@ jobs:
           # 安装描述文件
       #    mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
        #   echo $PROVISIONING_PROFILE_BASE64 | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
-
-      - name: 构建 iOS App
+      - name: 构建 iOS App (真机)
+        env:
+           IOS_CERTIFICATE: ${{ secrets.IOS_CERTIFICATE }}
+           IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+           IOS_MOBILE_PROVISION: ${{ secrets.IOS_MOBILE_PROVISION }}
+           #APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
+           #APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
         run: |
-            export CODE_SIGN_IDENTITY=""
-            export CODE_SIGNING_REQUIRED="NO"
-    
-            pnpm tauri ios build
+           pnpm tauri ios build
