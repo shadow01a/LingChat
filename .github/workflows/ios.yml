@@ -68,7 +68,8 @@ jobs:
          IOS_CERTIFICATE: ${{ secrets.IOS_CERTIFICATE }}
          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
          IOS_MOBILE_PROVISION: ${{ secrets.IOS_MOBILE_PROVISION }}
-         APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
+         TAURI_APPLE_DEVELOPMENT_TEAM: "V2T5CJNXU7"  # 注意前缀是 TAURI_
+         APPLE_DEVELOPMENT_TEAM: "V2T5CJNXU7"      # 兼容其他工具
         run: |      # 1. 解码证书
             echo "$IOS_CERTIFICATE" | base64 --decode > certificate.p12  
             # 2. 用 openssl 提取证书和私钥为 .pem（不加密）
