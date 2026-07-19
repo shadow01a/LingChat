@@ -1,0 +1,53 @@
+name: Verify iOS Build with Signing
+on: [push, workflow_dispatch]
+
+jobs:
+  verify-signing:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust & Node
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+          
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+  # You may pin to the exact commit or the version.
+  # uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
+        uses: pnpm/action-setup@v6.0.9
+        with:
+    # Version of pnpm to install
+            version: latest
+        
+      - name: Install Dependencies
+        run: pnpm i
+
+      # 关键步骤：在构建前安装证书和描述文件
+     # - name: Install Apple Certificate and Profile
+     #   env:
+     #     CERT_P12_BASE64: ${{ secrets.CERT_P12_BASE64 }}
+     #     CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+     #     PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+     #   run: |
+     #     # 创建临时 Keychain
+     #     KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+     #     security create-keychain -p "temp_password" $KEYCHAIN_PATH
+     #     security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+     #     security unlock-keychain -p "temp_password" $KEYCHAIN_PATH
+
+          # 导入证书
+       #   echo $CERT_P12_BASE64 | base64 --decode > certificate.p12
+      #    security import certificate.p12 -k $KEYCHAIN_PATH -P "$CERT_PASSWORD" -T /usr/bin/codesign
+
+          # 安装描述文件
+      #    mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+       #   echo $PROVISIONING_PROFILE_BASE64 | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+      # 尝试构建，这次会尝试自动签名
+      - name: Build iOS Project
+        run: pnpm tauri ios build
