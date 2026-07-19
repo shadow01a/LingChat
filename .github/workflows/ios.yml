@@ -25,7 +25,7 @@ jobs:
             version: latest
         
       - name: Install Dependencies
-        run: pnpm i && git lfs pull src-tauri/icons/icon.png && pnpm tauri icon src-tauri/icons/icon.png && pnpm tauri ios init
+        run: pnpm i && git lfs pull src-tauri/icons/icon.png && pnpm run init && pnpm tauri ios init
 
       # 关键步骤：在构建前安装证书和描述文件
      # - name: Install Apple Certificate and Profile
